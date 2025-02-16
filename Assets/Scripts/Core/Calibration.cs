@@ -7,6 +7,11 @@ public class Calibration : MonoBehaviour
 {
     private Camera KinectTerrainCamera;
     [SerializeField] private KinectDepthTerrain kinectDepthTerrain;
+    [SerializeField] private GameObject castlePrefab;
+    [SerializeField] private GameObject towerPrefab;
+    [SerializeField] private GameObject enemySpawnPrefab;
+
+    private List<GameObject> spawnedEntities = new List<GameObject>();
 
     private List<Vector3> castlePositions = new List<Vector3>();
     private List<Vector3> towerPositions = new List<Vector3>();
@@ -38,6 +43,7 @@ public class Calibration : MonoBehaviour
         //kinectDepthTerrain.DebugKinect();
 
         presetManager.LoadPreset(); // Load the selected preset
+        VisualizePreset();
         Debug.Log("🔹 Select preset, adjust camera, place entities, then save.");
     }
 
@@ -63,6 +69,53 @@ public class Calibration : MonoBehaviour
         }
     }
 
+    public void VisualizePreset()
+    {
+        ClearVisualization(); // Remove old visual objects
+
+        // 🔹 Spawn castle
+        foreach (Vector3 position in presetManager.GetCastlePositions())
+        {
+            float terrainHeight = Terrain.activeTerrain.SampleHeight(position);
+            Vector3 adjustedPosition = new Vector3(position.x, terrainHeight + 2f, position.z);
+
+            GameObject castle = Instantiate(castlePrefab, adjustedPosition, Quaternion.identity);
+            spawnedEntities.Add(castle);
+        }
+
+        // 🔹 Spawn towers
+        foreach (Vector3 position in presetManager.GetTowerPositions())
+        {
+            float terrainHeight = Terrain.activeTerrain.SampleHeight(position);
+            Vector3 adjustedPosition = new Vector3(position.x, terrainHeight + 1f, position.z);
+
+            GameObject tower = Instantiate(towerPrefab, adjustedPosition, Quaternion.identity);
+            spawnedEntities.Add(tower);
+        }
+
+        // 🔹 Spawn enemy spawn points (Spheres)
+        foreach (Vector3 position in presetManager.GetEnemySpawnPositions())
+        {
+            float terrainHeight = Terrain.activeTerrain.SampleHeight(position);
+            Vector3 adjustedPosition = new Vector3(position.x, terrainHeight + 1f, position.z);
+
+            GameObject enemySpawn = Instantiate(enemySpawnPrefab, adjustedPosition, Quaternion.identity);
+            spawnedEntities.Add(enemySpawn);
+        }
+
+        Debug.Log("✅ Preset visualized with terrain height adjustment.");
+    }
+
+    private void ClearVisualization()
+    {
+        foreach (GameObject obj in spawnedEntities)
+        {
+            Destroy(obj);
+        }
+        spawnedEntities.Clear();
+    }
+
+
     private void RegisterPosition(string type)
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -75,6 +128,7 @@ public class Calibration : MonoBehaviour
             if (type == "castle") presetManager.AddCastle(position);
             if (type == "tower") presetManager.AddTower(position);
             if (type == "enemy") presetManager.AddEnemySpawn(position);
+            VisualizePreset();
         }
         else
         {
@@ -132,6 +186,7 @@ public class Calibration : MonoBehaviour
 
     private void GoToMainMenu()
     {
+        ClearVisualization();
         SceneManager.LoadScene("MainMenu");
     }
 }

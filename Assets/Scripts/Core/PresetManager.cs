@@ -15,6 +15,8 @@ public class PresetManager : MonoBehaviour
     private string selectedPreset = "Preset1"; // Default preset
     private PresetData presetData = new PresetData();
 
+    private Calibration calibration = FindObjectOfType<Calibration>();
+
     private string GetPresetFilePath() => Path.Combine(Application.persistentDataPath, $"{selectedPreset}.json");
 
     private void Awake()
@@ -27,6 +29,7 @@ public class PresetManager : MonoBehaviour
     {
         selectedPreset = presetName;
         LoadPreset();
+        calibration.VisualizePreset();
         Debug.Log($"🔹 Selected preset: {selectedPreset}");
     }
 
