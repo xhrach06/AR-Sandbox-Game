@@ -15,13 +15,14 @@ public class PresetManager : MonoBehaviour
     private string selectedPreset = "Preset1"; // Default preset
     private PresetData presetData = new PresetData();
 
-    private Calibration calibration = FindObjectOfType<Calibration>();
+    private Calibration calibration;
 
     private string GetPresetFilePath() => Path.Combine(Application.persistentDataPath, $"{selectedPreset}.json");
 
     private void Awake()
     {
         selectedPreset = PlayerPrefs.GetString("SelectedPreset", "Preset1");
+        calibration = FindObjectOfType<Calibration>();
         LoadPreset();
     }
 
