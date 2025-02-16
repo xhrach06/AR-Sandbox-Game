@@ -84,7 +84,7 @@ public class GameManager : MonoBehaviour
         // 🔹 Load preset from Calibration
         string preset = PlayerPrefs.GetString("SelectedPreset", "Preset1");
         Debug.Log($"Loading {preset}...");
-        FindObjectOfType<PresetManager>().LoadPreset(preset);
+        FindObjectOfType<PresetManager>().SelectPreset(preset); // LoadPreset
 
         yield return new WaitForSeconds(1f); // Ensure preset loads before placing objects
 

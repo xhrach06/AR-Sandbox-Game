@@ -1,7 +1,7 @@
 using UnityEngine;
 using Unity.AI.Navigation; // Required for NavMesh
 using System.Linq;
-
+using System.Collections;
 public class KinectDepthTerrain : MonoBehaviour
 {
     [SerializeField] public MultiSourceManager multiSourceManager;
@@ -27,6 +27,16 @@ public class KinectDepthTerrain : MonoBehaviour
 
     private void Start()
     {
+        string dllPath = System.IO.Path.Combine(Application.dataPath, "Plugins/KinectUnityAddin.dll");
+        if (System.IO.File.Exists(dllPath))
+        {
+            Debug.Log("✅ Kinect DLL Found in Build: " + dllPath);
+        }
+        else
+        {
+            Debug.LogWarning("❌ Kinect DLL MISSING! Ensure it is in the Plugins folder.");
+        }
+
         if (terrain == null)
         {
             Debug.LogError("Terrain component not assigned.");
@@ -67,6 +77,13 @@ public class KinectDepthTerrain : MonoBehaviour
         }
     }
 
+    public void EnableLiveKinectTerrain()
+    {
+        isCalibrationRunning = true; // Enable real-time Kinect updates
+        Debug.Log("🔹 Kinect depth terrain updates enabled.");
+    }
+
+
     public void SyncTerrainColliderWithTerrain()
     {
         TerrainCollider terrainCollider = terrain.GetComponent<TerrainCollider>();
@@ -87,11 +104,41 @@ public class KinectDepthTerrain : MonoBehaviour
 
         // If calibration is running, fetch Kinect data
         rawDepthData = multiSourceManager.GetDepthData();
+        if (rawDepthData == null || rawDepthData.Length == 0)
+        {
+            Debug.LogError("❌ Kinect depth data is NULL! Trying to restart Kinect...");
+            StartCoroutine(RetryKinectConnection());
+        }
+        else
+        {
+            Debug.Log("✅ Kinect depth data detected.");
+        }
         if (rawDepthData != null && rawDepthData.Length > 0)
         {
             GenerateTerrainFromDepthData();
             ApplyTexturesBasedOnHeight();
         }
+    }
+
+    private IEnumerator RetryKinectConnection()
+    {
+        int attempts = 0;
+        while (attempts < 5) // Try 5 times
+        {
+            yield return new WaitForSeconds(10f); // Wait before retrying
+
+            rawDepthData = multiSourceManager.GetDepthData();
+            if (rawDepthData != null && rawDepthData.Length > 0)
+            {
+                Debug.Log("✅ Kinect reconnected successfully.");
+                yield break;
+            }
+
+            attempts++;
+            Debug.LogWarning($"⚠️ Kinect reconnect attempt {attempts}/5 failed.");
+        }
+
+        Debug.LogError("❌ Kinect failed to initialize after multiple attempts.");
     }
 
     private void GenerateTerrainFromDepthData()
@@ -212,6 +259,26 @@ public class KinectDepthTerrain : MonoBehaviour
         else
         {
             Debug.LogError("No saved heightmap found!");
+        }
+    }
+
+    public void DebugKinect()
+    {
+        Debug.Log("🔍 Checking Kinect connection...");
+
+        if (multiSourceManager == null)
+        {
+            Debug.LogError("❌ MultiSourceManager not assigned!");
+            return;
+        }
+
+        if (multiSourceManager.GetDepthData() == null)
+        {
+            Debug.LogError("❌ Kinect depth data is NULL! Kinect might not be detected.");
+        }
+        else
+        {
+            Debug.Log("✅ Kinect is detected and providing depth data.");
         }
     }
 

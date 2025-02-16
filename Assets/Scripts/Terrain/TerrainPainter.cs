@@ -143,7 +143,7 @@ public class TerrainPainter : MonoBehaviour
             navObstacle.size = new Vector3(brushSize * 2, 20f, brushSize * 2);
             navObstacle.center = Vector3.zero;
             navObstacle.carving = true; // Enable carving to dynamically affect the NavMesh
-            Debug.Log($"Spawned NavMeshObstacle at {worldPosition} with size {navObstacle.size}");
+            //Debug.Log($"Spawned NavMeshObstacle at {worldPosition} with size {navObstacle.size}");
         }
         else
         {
