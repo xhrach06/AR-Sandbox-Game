@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
 
     private float timer; // Timer to track game duration
     private bool gameRunning = false; // Whether the game is running
-
+    private PresetManager presetManager;
     void Awake()
     {
         Instance = this;
@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         timer = gameDuration;
+        presetManager = FindObjectOfType<PresetManager>();
 
         // 🔹 Load terrain saved from Calibration
         StartCoroutine(LoadSavedTerrainAndInitializeGame());
@@ -84,7 +85,7 @@ public class GameManager : MonoBehaviour
         // 🔹 Load preset from Calibration
         string preset = PlayerPrefs.GetString("SelectedPreset", "Preset1");
         Debug.Log($"Loading {preset}...");
-        FindObjectOfType<PresetManager>().SelectPreset(preset); // LoadPreset
+        presetManager.SelectPreset(preset); // LoadPreset
 
         yield return new WaitForSeconds(1f); // Ensure preset loads before placing objects
 

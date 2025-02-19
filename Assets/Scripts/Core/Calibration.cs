@@ -30,6 +30,7 @@ public class Calibration : MonoBehaviour
         presetManager = FindObjectOfType<PresetManager>();
         if (presetManager == null)
         {
+            presetManager.calibrationRunning = true;
             Debug.LogError("❌ No PresetManager found in the scene!");
             return;
         }
@@ -187,6 +188,7 @@ public class Calibration : MonoBehaviour
     private void GoToMainMenu()
     {
         ClearVisualization();
+        presetManager.calibrationRunning = false;
         SceneManager.LoadScene("MainMenu");
     }
 }
