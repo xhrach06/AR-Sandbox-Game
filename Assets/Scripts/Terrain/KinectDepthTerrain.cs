@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.AI.Navigation; // Required for NavMesh
 using System.Linq;
 using System.Collections;
+using System.Collections.Generic;
 public class KinectDepthTerrain : MonoBehaviour
 {
     [SerializeField] public MultiSourceManager multiSourceManager;
@@ -27,6 +28,9 @@ public class KinectDepthTerrain : MonoBehaviour
     private float updateTimer = 0f;
     private float updateInterval = 0.2f; // Update terrain every 0.2 seconds
 
+    private Queue<float[,]> pastHeightMaps = new Queue<float[,]>(); // Stores last few heightmaps
+    private const int heightmapBufferSize = 3; // Number of frames to average
+    private const float heightChangeThreshold = 0.005f; // Ignore changes smaller than this
 
     private void Start()
     {
@@ -146,7 +150,9 @@ public class KinectDepthTerrain : MonoBehaviour
     {
         int width = depthResolution.x;
         int height = depthResolution.y;
-        float[,] heightMap = new float[height, width];
+
+        float[,] oldHeightMap = terrain.terrainData.GetHeights(0, 0, width, height);
+        float[,] newHeightMap = new float[height, width];
 
         for (int y = 0; y < height; y++)
         {
@@ -155,24 +161,67 @@ public class KinectDepthTerrain : MonoBehaviour
                 int index = y * width + x;
                 ushort depth = rawDepthData[index];
 
-                // If depth is 0 (missing data), get an estimated value from neighbors
                 if (depth == 0)
                 {
                     depth = GetValidDepth(x, y, rawDepthData);
                 }
 
-                // Convert depth to height (normalize & scale)
                 float normalizedDepth = Mathf.InverseLerp(minDepth, maxDepth, depth);
-                heightMap[y, x] = (1f - normalizedDepth) * terrainDepthMultiplier; // Invert depth to height mapping
+                float newHeight = (1f - normalizedDepth) * terrainDepthMultiplier;
+
+                // Check if the height difference is significant
+                if (Mathf.Abs(newHeight - oldHeightMap[y, x]) > heightChangeThreshold)
+                {
+                    newHeightMap[y, x] = newHeight;
+                }
+                else
+                {
+                    newHeightMap[y, x] = oldHeightMap[y, x]; // Keep old height to reduce flickering
+                }
             }
         }
 
-        terrain.terrainData.SetHeights(0, 0, heightMap);
+        // Store new heightmap in buffer for smoothing
+        if (pastHeightMaps.Count >= heightmapBufferSize)
+        {
+            pastHeightMaps.Dequeue(); // Remove oldest heightmap
+        }
+        pastHeightMaps.Enqueue(newHeightMap);
+
+        // Apply averaged heightmap for stability
+        float[,] averagedHeightMap = AverageHeightMaps(pastHeightMaps, width, height);
+        terrain.terrainData.SetHeights(0, 0, averagedHeightMap);
+
         SyncTerrainColliderWithTerrain();
     }
 
+    private float[,] AverageHeightMaps(Queue<float[,]> heightMaps, int width, int height)
+    {
+        float[,] result = new float[height, width];
 
+        foreach (float[,] map in heightMaps)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    result[y, x] += map[y, x];
+                }
+            }
+        }
 
+        // Divide by the number of stored heightmaps to get the average
+        int count = heightMaps.Count;
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                result[y, x] /= count;
+            }
+        }
+
+        return result;
+    }
 
     private ushort GetValidDepth(int x, int y, ushort[] depthData)
     {
