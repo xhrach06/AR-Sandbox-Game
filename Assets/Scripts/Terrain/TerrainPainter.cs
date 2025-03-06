@@ -23,13 +23,13 @@ public class TerrainPainter : MonoBehaviour
             Debug.LogError("Terrain is not assigned!");
             return;
         }
-
-        if (navMeshSurface == null)
-        {
-            Debug.LogError("NavMeshSurface is not assigned!");
-            return;
-        }
-
+        /*
+                if (navMeshSurface == null)
+                {
+                    Debug.LogError("NavMeshSurface is not assigned!");
+                    return;
+                }
+        */
         terrainData = terrain.terrainData;
 
         // Backup the original splatmap data

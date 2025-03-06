@@ -259,7 +259,7 @@ public class KinectDepthTerrain : MonoBehaviour
             SyncTerrainColliderWithTerrain();
             ApplyTexturesBasedOnHeight();
             SmoothTerrain(3, 0.6f);
-            navMeshSurface.BuildNavMesh();
+            //navMeshSurface.BuildNavMesh();
         }
         else
         {

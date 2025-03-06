@@ -38,9 +38,20 @@ public class GridManager : MonoBehaviour
             }
         }
     }
+    public Node GetNodeFromWorldPosition(Vector3 worldPosition)
+    {
+        int x = Mathf.FloorToInt(worldPosition.x / nodeSize);
+        int y = Mathf.FloorToInt(worldPosition.z / nodeSize);
+
+        // Ensure the index is within bounds
+        if (x < 0 || x >= gridSize.x || y < 0 || y >= gridSize.y)
+            return null;
+
+        return grid[x, y];
+    }
 
     // 🔹 Draws the grid in the editor for visualization
-    /*void OnDrawGizmos()
+    void OnDrawGizmos()
     {
         if (grid == null) return;
 
@@ -56,5 +67,5 @@ public class GridManager : MonoBehaviour
             }
         }
     }
-    */
+
 }

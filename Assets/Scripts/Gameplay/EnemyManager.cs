@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.AI;
 
 public class EnemyManager : MonoBehaviour
 {
@@ -11,6 +10,22 @@ public class EnemyManager : MonoBehaviour
 
     private List<Vector3> spawnPoints = new List<Vector3>();
     private bool spawningEnemies = false;
+    public GridManager grid;
+    public Pathfinding pathfinding;
+
+    void Start()
+    {
+        //grid = FindObjectOfType<GridManager>();
+        //pathfinding = FindObjectOfType<Pathfinding>();
+        if (grid == null)
+        {
+            Debug.LogError("❌ EnemyManager: GridManager is missing! Pathfinding won't work.");
+        }
+        if (pathfinding == null)
+        {
+            Debug.LogError("❌ EnemyManager: PathFinding is missing! Pathfinding won't work.");
+        }
+    }
 
     public void InitializeSpawnPoints()
     {
@@ -31,22 +46,22 @@ public class EnemyManager : MonoBehaviour
             float y = Terrain.activeTerrain.SampleHeight(spawnPoint) + 1f;
             Vector3 adjustedSpawn = new Vector3(spawnPoint.x, y, spawnPoint.z);
 
-            // Check if it's on the NavMesh
-            if (NavMesh.SamplePosition(adjustedSpawn, out NavMeshHit hit, 10f, NavMesh.AllAreas))
+            // Ensure the spawn point is within the grid bounds
+            Node node = grid.GetNodeFromWorldPosition(adjustedSpawn);
+            if (node != null && node.walkable)
             {
-                validSpawnPoints.Add(hit.position);
-                Debug.Log($"✅ Enemy spawn point adjusted to: {hit.position}");
+                validSpawnPoints.Add(node.worldPosition);
+                Debug.Log($"✅ Enemy spawn point adjusted to: {node.worldPosition}");
             }
             else
             {
-                Debug.LogWarning($"⚠️ Enemy spawn point {adjustedSpawn} is not on the NavMesh! Skipping...");
+                Debug.LogWarning($"⚠️ Enemy spawn point {adjustedSpawn} is not walkable! Skipping...");
             }
         }
 
         // Replace old spawn points with valid ones
         spawnPoints = validSpawnPoints;
     }
-
 
     public void StartSpawningEnemiesContinuously()
     {
@@ -66,27 +81,26 @@ public class EnemyManager : MonoBehaviour
         {
             Vector3 spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
 
-            // Ensure spawn point is valid on the NavMesh
-            if (!NavMesh.SamplePosition(spawnPoint, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+            // Ensure spawn point is valid
+            Node node = grid.GetNodeFromWorldPosition(spawnPoint);
+            if (node == null || !node.walkable)
             {
-                Debug.LogWarning($"⚠️ Enemy spawn point {spawnPoint} is not on the NavMesh! Skipping...");
+                Debug.LogWarning($"⚠️ Enemy spawn point {spawnPoint} is not walkable! Skipping...");
                 yield return null;
                 continue;
             }
 
-            GameObject enemy = Instantiate(enemyPrefab, hit.position, Quaternion.identity);
-            NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();
+            GameObject enemy = Instantiate(enemyPrefab, node.worldPosition, Quaternion.identity);
+            Enemy enemyScript = enemy.GetComponent<Enemy>();
 
-            if (agent != null && castle != null)
+            if (enemyScript != null && castle != null)
             {
-                agent.Warp(hit.position);
-                agent.SetDestination(castle.position);
+                enemyScript.SetTarget(castle);
             }
 
             yield return new WaitForSeconds(spawnInterval);
         }
     }
-
 
     public void SetCastleTarget(Transform castleTransform)
     {
@@ -96,69 +110,8 @@ public class EnemyManager : MonoBehaviour
     /// <summary>
     /// / clear active enemies
     /// </summary>
-
     public void StopSpawning()
     {
         spawningEnemies = false;
     }
 }
-
-/*
-private IEnumerator InitializeSpawnPoints()
-{
-    const int numberOfSpawnPoints = 3;
-    const int maxAttempts = 20;
-    Bounds terrainBounds = GameManager.Instance.GetTerrainBounds();
-
-    for (int i = 0; i < numberOfSpawnPoints; i++)
-    {
-        bool pointInitialized = false;
-
-        for (int attempts = 0; attempts < maxAttempts; attempts++)
-        {
-            float x = Random.Range(terrainBounds.min.x, terrainBounds.max.x);
-            float z = Random.Range(terrainBounds.min.z, terrainBounds.max.z);
-            float y = Terrain.activeTerrain.SampleHeight(new Vector3(x, 0, z)) + 1f;
-
-            Vector3 randomPosition = new Vector3(x, y, z);
-            Debug.Log($"Enemy Spawn Attempt {attempts + 1}: Trying position {randomPosition}");
-
-            if (NavMesh.SamplePosition(randomPosition, out NavMeshHit hit, 25f, NavMesh.AllAreas))
-            {
-                spawnPoints.Add(hit.position); // Add valid spawn point
-                Debug.Log($"Enemy spawn point {i} initialized at: {hit.position}");
-                pointInitialized = true;
-                break;
-            }
-            else
-            {
-                Debug.LogWarning($"Enemy spawn validation failed at: {randomPosition}");
-            }
-        }
-
-        if (!pointInitialized)
-        {
-            Debug.LogError($"Failed to initialize spawn point {i}! Adding fallback point.");
-            spawnPoints.Add(Vector3.zero); // Add a fallback invalid point
-        }
-
-        yield return null; // Allow other processes to run while initializing
-    }
-
-    spawnPointsInitialized = true; // Mark spawn points as ready
-    Debug.Log("EnemyManager: All spawn points initialized.");
-}
-
-public void StartSpawningEnemiesContinuously()
-{
-    if (!spawnPointsInitialized)
-    {
-        Debug.LogWarning("EnemyManager: Spawn points are not initialized yet. Delaying spawning.");
-        StartCoroutine(WaitForSpawnPointsThenSpawn());
-        return;
-    }
-
-    spawningEnemies = true;
-    StartCoroutine(SpawnEnemies());
-}
-*/

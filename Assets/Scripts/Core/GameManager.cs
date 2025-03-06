@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Unity.AI.Navigation;
+// using Unity.AI.Navigation; // NAVMESH REMOVED
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
     private float timer; // Timer to track game duration
     private bool gameRunning = false; // Whether the game is running
     private PresetManager presetManager;
+
     void Awake()
     {
         Instance = this;
@@ -27,6 +28,12 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        terrain = FindObjectOfType<Terrain>(); // Auto-assign terrain if not set
+        if (terrain == null)
+        {
+            Debug.LogError("❌ GameManager: No Terrain found in the scene! Assign it in the Inspector.");
+            return;
+        }
         timer = gameDuration;
         presetManager = FindObjectOfType<PresetManager>();
 
@@ -66,6 +73,8 @@ public class GameManager : MonoBehaviour
 
             Debug.Log("✅ Loaded saved terrain heightmap.");
 
+            /*
+            // NAVMESH REMOVED
             if (terrainPainter != null)
             {
                 terrainPainter.UpdateNavMesh();
@@ -76,6 +85,7 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(1f);
 
             yield return StartCoroutine(RebakeNavMesh());
+            */
         }
         else
         {
@@ -92,6 +102,8 @@ public class GameManager : MonoBehaviour
         StartCoroutine(DelayedGameInitialization());
     }
 
+    /*
+    // NAVMESH REMOVED
     private IEnumerator RebakeNavMesh()
     {
         yield return new WaitForSeconds(0.5f); // Small delay to ensure terrain updates fully
@@ -108,19 +120,23 @@ public class GameManager : MonoBehaviour
             Debug.LogError("❌ No NavMeshSurface found in the scene!");
         }
     }
+    */
 
     private IEnumerator DelayedGameInitialization()
     {
         Debug.Log("⏳ Waiting for terrain to fully load...");
 
-        yield return new WaitForSeconds(1f); // Ensure terrain height and NavMesh are updated
+        yield return new WaitForSeconds(1f); // Ensure terrain height is updated
 
+        /*
+        // NAVMESH REMOVED
         if (terrainPainter != null)
         {
             Debug.Log("🔄 Updating NavMesh after terrain is ready...");
             terrainPainter.UpdateNavMesh();
             yield return new WaitForSeconds(1f);
         }
+        */
 
         Debug.Log("🏰 Placing castle and towers...");
         castleManager.PlaceCastle();
@@ -148,7 +164,6 @@ public class GameManager : MonoBehaviour
 
         gameRunning = true;
     }
-
 
     void EndGame(string message)
     {
