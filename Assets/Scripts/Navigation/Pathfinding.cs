@@ -4,7 +4,7 @@ using UnityEngine;
 public class Pathfinding : MonoBehaviour
 {
     public GridManager grid; // Reference to GridManager
-
+    int heightWeight = 10;
     // 🔹 Find the shortest path between startPos and targetPos
     public List<Node> FindPath(Vector3 startPos, Vector3 targetPos)
     {
@@ -105,7 +105,12 @@ public class Pathfinding : MonoBehaviour
     {
         int dstX = Mathf.Abs((int)a.worldPosition.x - (int)b.worldPosition.x);
         int dstY = Mathf.Abs((int)a.worldPosition.z - (int)b.worldPosition.z);
-        return dstX + dstY;
+
+        // 🔹 Factor in Height Difference (More Costly for Steep Slopes)
+        float heightDiff = Mathf.Abs(a.worldPosition.y - b.worldPosition.y);
+        float heightPenalty = heightDiff * heightWeight; // Adjust multiplier based on difficulty
+
+        return dstX + dstY + (int)heightPenalty;
     }
 
     // 🔹 Convert world position to a grid node
