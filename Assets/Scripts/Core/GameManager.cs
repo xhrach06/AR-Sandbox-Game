@@ -72,20 +72,6 @@ public class GameManager : MonoBehaviour
             terrainData.SetHeights(0, 0, savedData.To2DArray());
 
             Debug.Log("✅ Loaded saved terrain heightmap.");
-
-            /*
-            // NAVMESH REMOVED
-            if (terrainPainter != null)
-            {
-                terrainPainter.UpdateNavMesh();
-                Debug.Log("🔄 NavMesh updated after loading terrain.");
-            }
-
-            // Wait to ensure terrain changes are fully applied before baking the NavMesh
-            yield return new WaitForSeconds(1f);
-
-            yield return StartCoroutine(RebakeNavMesh());
-            */
         }
         else
         {
@@ -102,45 +88,25 @@ public class GameManager : MonoBehaviour
         StartCoroutine(DelayedGameInitialization());
     }
 
-    /*
-    // NAVMESH REMOVED
-    private IEnumerator RebakeNavMesh()
-    {
-        yield return new WaitForSeconds(0.5f); // Small delay to ensure terrain updates fully
-
-        NavMeshSurface navMeshSurface = FindObjectOfType<NavMeshSurface>();
-        if (navMeshSurface != null)
-        {
-            Debug.Log("🔄 Rebaking NavMesh dynamically...");
-            navMeshSurface.BuildNavMesh();
-            Debug.Log("✅ NavMesh rebaked successfully.");
-        }
-        else
-        {
-            Debug.LogError("❌ No NavMeshSurface found in the scene!");
-        }
-    }
-    */
-
     private IEnumerator DelayedGameInitialization()
     {
         Debug.Log("⏳ Waiting for terrain to fully load...");
 
         yield return new WaitForSeconds(1f); // Ensure terrain height is updated
 
-        /*
-        // NAVMESH REMOVED
-        if (terrainPainter != null)
-        {
-            Debug.Log("🔄 Updating NavMesh after terrain is ready...");
-            terrainPainter.UpdateNavMesh();
-            yield return new WaitForSeconds(1f);
-        }
-        */
-
         Debug.Log("🏰 Placing castle and towers...");
         castleManager.PlaceCastle();
         towerManager.PlaceTowers();
+        GridManager gridManager = FindObjectOfType<GridManager>();
+        if (gridManager != null)
+        {
+            Debug.Log("🔄 Re-generating grid after placing towers...");
+            gridManager.GenerateGrid();
+        }
+        else
+        {
+            Debug.LogError("❌ GridManager not found! Pathfinding may not work correctly.");
+        }
 
         // ✅ FIX: Assign castle to enemy manager!
         Transform castleTransform = castleManager.GetCastleTransform();

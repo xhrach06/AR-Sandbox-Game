@@ -15,7 +15,7 @@ public class GridManager : MonoBehaviour
     }
 
     // 🔹 Generates the grid by creating nodes based on the terrain height and obstacles
-    void GenerateGrid()
+    public void GenerateGrid()
     {
         grid = new Node[gridSize.x, gridSize.y];
 
@@ -29,6 +29,10 @@ public class GridManager : MonoBehaviour
 
                 // Check if this node is walkable (not inside an obstacle)
                 bool walkable = !Physics.CheckSphere(worldPoint, nodeSize / 64, obstacleMask);
+                if (!walkable)
+                {
+                    Debug.Log($"🚧 Obstacle detected at {worldPoint}");
+                }
 
                 // Calculate movement cost based on height difference (hills affect movement speed)
                 float heightCost = Mathf.Abs(worldPoint.y - terrain.SampleHeight(worldPoint));

@@ -140,6 +140,8 @@ MonoBehaviour:
   attackRange: 10
   attackCooldown: 1
   damageToCastle: 10
+  moveSpeed: 8
+  avoidRadius: 5
   health: {fileID: 0}
   offsetDistance: 2
 --- !u!54 &-5392666909813495536
