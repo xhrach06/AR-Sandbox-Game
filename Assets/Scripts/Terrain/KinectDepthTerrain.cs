@@ -97,10 +97,15 @@ public class KinectDepthTerrain : MonoBehaviour
 
     private void Update()
     {
-        if (!isCalibrationRunning) return;
+        //if (!isCalibrationRunning) return;
         updateTimer += Time.deltaTime;
         if (updateTimer < updateInterval) return; // Prevent excessive updates
         updateTimer = 0f;
+        if (multiSourceManager == null)
+        {
+            Debug.LogError("❌ KinectDepthTerrain: MultiSourceManager is NULL! Cannot get Kinect data.");
+            return;
+        }
 
         rawDepthData = multiSourceManager.GetDepthData();
         if (rawDepthData == null || rawDepthData.Length == 0)
@@ -108,6 +113,9 @@ public class KinectDepthTerrain : MonoBehaviour
             Debug.LogError("❌ Kinect depth data is NULL! Skipping terrain update.");
             return;
         }
+        // ✅ DEBUG: Check if depth data changes
+        Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
+
         GenerateTerrainFromDepthData();
         ApplyTexturesBasedOnHeight();
     }
@@ -134,7 +142,7 @@ public class KinectDepthTerrain : MonoBehaviour
         Debug.LogError("❌ Kinect failed to initialize after multiple attempts.");
     }
 
-    private void GenerateTerrainFromDepthData()
+    public void GenerateTerrainFromDepthData()
     {
         int width = depthResolution.x;
         int height = depthResolution.y;
@@ -160,6 +168,7 @@ public class KinectDepthTerrain : MonoBehaviour
         }
 
         terrain.terrainData.SetHeights(0, 0, heightMap);
+        SyncTerrainColliderWithTerrain();
     }
 
 
@@ -179,7 +188,7 @@ public class KinectDepthTerrain : MonoBehaviour
 
 
 
-    private void ApplyTexturesBasedOnHeight()
+    public void ApplyTexturesBasedOnHeight()
     {
         if (terrain.terrainData.alphamapLayers == 0)
         {

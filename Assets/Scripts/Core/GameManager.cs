@@ -1,25 +1,26 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-// using Unity.AI.Navigation; // NAVMESH REMOVED
 using UnityEngine;
+using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
-    public CastleManager castleManager; // Reference to the CastleManager
-    public TowerManager towerManager;   // Reference to the TowerManager
-    public EnemyManager enemyManager;   // Reference to the EnemyManager
+    public static GameManager Instance { get; private set; }
+    public CastleManager castleManager;
+    public TowerManager towerManager;
+    public EnemyManager enemyManager;
     public Terrain terrain;
     public TerrainPainter terrainPainter;
+    public KinectDepthTerrain kinectDepthTerrain; // ✅ Added Kinect terrain reference
+    public GridManager gridManager;
 
-    public int numberOfTowers = 3; // Number of towers to place
-    public float gameDuration = 120f; // Duration of the game in seconds
+    public int numberOfTowers = 3;
+    public float gameDuration = 120f;
 
-    private Bounds cameraBounds;
-    public static GameManager Instance { get; private set; }
-
-    private float timer; // Timer to track game duration
-    private bool gameRunning = false; // Whether the game is running
+    private float timer;
+    private bool gameRunning = false;
     private PresetManager presetManager;
+
+    public float terrainUpdateInterval = 2f; // ✅ Update interval for live terrain and paths
 
     void Awake()
     {
@@ -28,76 +29,54 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        terrain = FindObjectOfType<Terrain>(); // Auto-assign terrain if not set
-        if (terrain == null)
+        terrain = FindObjectOfType<Terrain>();
+        gridManager = FindObjectOfType<GridManager>();
+        kinectDepthTerrain = FindObjectOfType<KinectDepthTerrain>(); // ✅ Find Kinect terrain system
+
+        if (terrain == null || kinectDepthTerrain == null)
         {
-            Debug.LogError("❌ GameManager: No Terrain found in the scene! Assign it in the Inspector.");
+            Debug.LogError("❌ GameManager: Terrain or KinectDepthTerrain not found!");
             return;
         }
+
         timer = gameDuration;
         presetManager = FindObjectOfType<PresetManager>();
 
-        // 🔹 Load terrain saved from Calibration
-        StartCoroutine(LoadSavedTerrainAndInitializeGame());
+        // ✅ ENABLE LIVE KINECT TERRAIN UPDATES
+        kinectDepthTerrain.EnableLiveKinectTerrain();
+
+        // ✅ Start periodic updates of terrain & paths
+        StartCoroutine(UpdateLiveTerrain());
+
+        StartCoroutine(DelayedGameInitialization());
     }
 
     void Update()
     {
         if (!gameRunning) return;
 
-        // Decrease the timer
         timer -= Time.deltaTime;
 
-        // Check if time has run out
         if (timer <= 0)
         {
             EndGame("You survived! The castle held out for 2 minutes.");
         }
 
-        // Check if the castle is destroyed
         if (castleManager.GetCastleTransform() == null)
         {
             EndGame("Game Over! The castle was destroyed.");
         }
     }
 
-    private IEnumerator LoadSavedTerrainAndInitializeGame()
-    {
-        if (PlayerPrefs.HasKey("SavedHeightmap"))
-        {
-            string heightmapJson = PlayerPrefs.GetString("SavedHeightmap");
-            HeightmapData savedData = JsonUtility.FromJson<HeightmapData>(heightmapJson);
-
-            TerrainData terrainData = terrain.terrainData;
-            terrainData.SetHeights(0, 0, savedData.To2DArray());
-
-            Debug.Log("✅ Loaded saved terrain heightmap.");
-        }
-        else
-        {
-            Debug.LogWarning("❌ No saved heightmap found! Using default terrain.");
-        }
-
-        // 🔹 Load preset from Calibration
-        string preset = PlayerPrefs.GetString("SelectedPreset", "Preset1");
-        Debug.Log($"Loading {preset}...");
-        presetManager.SelectPreset(preset); // LoadPreset
-
-        yield return new WaitForSeconds(1f); // Ensure preset loads before placing objects
-
-        StartCoroutine(DelayedGameInitialization());
-    }
-
     private IEnumerator DelayedGameInitialization()
     {
         Debug.Log("⏳ Waiting for terrain to fully load...");
-
-        yield return new WaitForSeconds(1f); // Ensure terrain height is updated
+        yield return new WaitForSeconds(1f);
 
         Debug.Log("🏰 Placing castle and towers...");
         castleManager.PlaceCastle();
         towerManager.PlaceTowers();
-        GridManager gridManager = FindObjectOfType<GridManager>();
+
         if (gridManager != null)
         {
             Debug.Log("🔄 Re-generating grid after placing towers...");
@@ -108,7 +87,6 @@ public class GameManager : MonoBehaviour
             Debug.LogError("❌ GridManager not found! Pathfinding may not work correctly.");
         }
 
-        // ✅ FIX: Assign castle to enemy manager!
         Transform castleTransform = castleManager.GetCastleTransform();
         if (castleTransform != null)
         {
@@ -123,7 +101,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("🛠 Initializing enemy spawn points...");
         enemyManager.InitializeSpawnPoints();
 
-        yield return new WaitForSeconds(1f); // Ensure all objects are placed before spawning
+        yield return new WaitForSeconds(1f);
 
         Debug.Log("🚀 Starting enemy spawning...");
         enemyManager.StartSpawningEnemiesContinuously();
@@ -131,22 +109,40 @@ public class GameManager : MonoBehaviour
         gameRunning = true;
     }
 
+    private IEnumerator UpdateLiveTerrain()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(terrainUpdateInterval);
+
+            if (kinectDepthTerrain != null)
+            {
+                Debug.Log("🔄 Updating live terrain from Kinect...");
+                kinectDepthTerrain.GenerateTerrainFromDepthData();
+                kinectDepthTerrain.ApplyTexturesBasedOnHeight();
+            }
+
+            if (gridManager != null)
+            {
+                Debug.Log("🔄 Re-generating pathfinding grid...");
+                gridManager.GenerateGrid();
+            }
+        }
+    }
+
     void EndGame(string message)
     {
         gameRunning = false;
         Debug.Log(message);
 
-        // 🔹 Revert terrain if applicable
         if (terrainPainter != null)
         {
             Debug.Log("Reverting terrain at the end of the game.");
             terrainPainter.RevertTerrain();
         }
 
-        // Stop enemy spawning
         enemyManager.StopSpawning();
-
-        Time.timeScale = 0; // Pause the game
+        Time.timeScale = 0;
     }
 
     void OnApplicationQuit()

@@ -42,6 +42,7 @@ public class GridManager : MonoBehaviour
             }
         }
     }
+
     public Node GetNodeFromWorldPosition(Vector3 worldPosition)
     {
         int x = Mathf.FloorToInt(worldPosition.x / nodeSize);
