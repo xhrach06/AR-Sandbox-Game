@@ -2,38 +2,31 @@ using UnityEngine;
 
 public class Meteor : MonoBehaviour
 {
-    public float damageRadius = 5f; // Area of effect
-    public float damage = 50f; // Damage dealt to enemies
-    public ParticleSystem explosionEffect; // Explosion VFX
+    public float explosionRadius = 10f;
+    public float explosionForce = 1000f;
+    public float damage = 50f;
 
     void Start()
     {
-        // Trigger explosion after falling
-        Invoke(nameof(Explode), 1f); // Delays the explosion for visual effect
+        Destroy(gameObject, 5f); // Destroy after 5 sec
     }
 
-    void Explode()
+    void OnTriggerEnter(Collider other)
     {
-        // Play explosion effect
-        if (explosionEffect != null)
+        if (other.CompareTag("Enemy"))
         {
-            Instantiate(explosionEffect, transform.position, Quaternion.identity);
+            other.GetComponent<Enemy>().TakeDamage(damage);
+            Debug.Log("💥 Enemy hit by meteor!");
         }
 
-        // Damage all enemies in the radius
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, damageRadius);
-        foreach (Collider hit in hitColliders)
+        Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
+        foreach (Collider col in colliders)
         {
-            if (hit.CompareTag("Enemy"))
+            if (col.CompareTag("Enemy") && col.attachedRigidbody != null)
             {
-                Enemy enemy = hit.GetComponent<Enemy>();
-                if (enemy != null)
-                {
-                    enemy.TakeDamage(damage);
-                }
+                col.attachedRigidbody.AddExplosionForce(explosionForce, transform.position, explosionRadius);
             }
         }
-
-        Destroy(gameObject); // Destroy the meteor after the explosion
+        Destroy(gameObject);
     }
 }

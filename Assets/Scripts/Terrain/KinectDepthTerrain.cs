@@ -8,7 +8,7 @@ public class KinectDepthTerrain : MonoBehaviour
     [SerializeField] public MultiSourceManager multiSourceManager;
     private ushort[] rawDepthData;
     public Vector2 terrainRotation;
-    private readonly Vector2Int depthResolution = new Vector2Int(512, 424);
+    public readonly Vector2Int depthResolution = new Vector2Int(512, 424);
     private const ushort minDepth = 900;
     private const ushort maxDepth = 1250;
     bool mirrorDepth = true;
@@ -16,7 +16,7 @@ public class KinectDepthTerrain : MonoBehaviour
     public float plainsThreshold = 0.66f;  // Default value
 
     public Terrain terrain;
-    public NavMeshSurface navMeshSurface; // Reference to NavMesh Surface
+    // public NavMeshSurface navMeshSurface; // Reference to NavMesh Surface
     public float terrainDepthMultiplier = 0.1f;
 
     // Terrain layers for texture mapping
@@ -302,7 +302,7 @@ public class KinectDepthTerrain : MonoBehaviour
         isCalibrationRunning = false;
 
         SmoothTerrain(3, 0.6f);
-        navMeshSurface.BuildNavMesh();
+        //  navMeshSurface.BuildNavMesh();
         Debug.Log("Terrain saved and NavMesh updated.");
     }
 

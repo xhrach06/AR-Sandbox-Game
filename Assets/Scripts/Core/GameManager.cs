@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     public CastleManager castleManager;
     public TowerManager towerManager;
     public EnemyManager enemyManager;
+    public SpellManager spellManager;
     public Terrain terrain;
     public TerrainPainter terrainPainter;
     public KinectDepthTerrain kinectDepthTerrain; // ✅ Added Kinect terrain reference
@@ -31,7 +32,8 @@ public class GameManager : MonoBehaviour
     {
         terrain = FindObjectOfType<Terrain>();
         gridManager = FindObjectOfType<GridManager>();
-        kinectDepthTerrain = FindObjectOfType<KinectDepthTerrain>(); // ✅ Find Kinect terrain system
+        kinectDepthTerrain = FindObjectOfType<KinectDepthTerrain>();
+        spellManager = FindObjectOfType<SpellManager>();
 
         if (terrain == null || kinectDepthTerrain == null)
         {
@@ -127,6 +129,13 @@ public class GameManager : MonoBehaviour
                 Debug.Log("🔄 Re-generating pathfinding grid...");
                 gridManager.GenerateGrid();
             }
+            /*
+            if (spellManager != null)
+            {
+                spellManager.DetectMeteorStrike();
+                spellManager.DetectBarrier();
+            }
+            */
         }
     }
 

@@ -19,6 +19,8 @@ public class Enemy : MonoBehaviour
     private float currentHealth;
     private float currentDamage;
 
+    [Range(0, 100)]
+    public float barrierPassChance = 50f;
     private List<Node> path;  // The A* path
     private int pathIndex = 0; // Tracks position in the path
     private Pathfinding pathfinding; // Reference to pathfinding system
@@ -71,7 +73,28 @@ public class Enemy : MonoBehaviour
                     nextPosition += directionAway * offsetDistance; // Adjust position to move around the tower
                 }
             }
+            /*
+            // 🔹 Check for nearby barriers
+            Collider[] nearbyBarriers = Physics.OverlapSphere(transform.position, avoidRadius);
+            foreach (var barrierCollider in nearbyBarriers)
+            {
+                if (barrierCollider.CompareTag("Barrier"))
+                {
+                    float passChance = Random.Range(0f, 100f); // Roll a random chance
 
+                    if (passChance > barrierPassChance)
+                    {
+                        Debug.Log("❌ Enemy avoids the barrier! Recalculating path...");
+                        FindNewPath(); // Force path recalculation
+                        return; // Stop further movement processing
+                    }
+                    else
+                    {
+                        Debug.Log("✅ Enemy crosses the barrier!");
+                    }
+                }
+            }
+            */
             // 🔹 Move towards the next node in the path
             transform.position = Vector3.MoveTowards(transform.position, nextPosition, moveSpeed * Time.deltaTime);
 
