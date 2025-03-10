@@ -24,8 +24,8 @@ public class SpellManager : MonoBehaviour
 
     void Update()
     {
-        DetectMeteorStrike();
-        DetectBarrier();
+        //DetectMeteorStrike();
+        //DetectBarrier();
     }
 
     public void DetectMeteorStrike()
