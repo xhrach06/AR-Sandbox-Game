@@ -184,9 +184,7 @@ public class KinectDepthTerrain : MonoBehaviour
     {
         int width = depthResolution.x;
         int height = depthResolution.y;
-
-        float[,] oldHeightMap = terrain.terrainData.GetHeights(0, 0, width, height);
-        float[,] newHeightMap = new float[height, width];
+        float[,] heightMap = new float[height, width];
 
         for (int y = 0; y < height; y++)
         {
@@ -195,39 +193,72 @@ public class KinectDepthTerrain : MonoBehaviour
                 int index = y * width + x;
                 ushort depth = rawDepthData[index];
 
+                // If depth is 0 (missing data), get an estimated value from neighbors
                 if (depth == 0)
                 {
                     depth = GetValidDepth(x, y, rawDepthData);
                 }
 
+                // Convert depth to height (normalize & scale)
                 float normalizedDepth = Mathf.InverseLerp(minDepth, maxDepth, depth);
-                float newHeight = (1f - normalizedDepth) * terrainDepthMultiplier;
-
-                // Check if the height difference is significant
-                if (Mathf.Abs(newHeight - oldHeightMap[y, x]) > heightChangeThreshold)
-                {
-                    newHeightMap[y, x] = newHeight;
-                }
-                else
-                {
-                    newHeightMap[y, x] = oldHeightMap[y, x]; // Keep old height to reduce flickering
-                }
+                heightMap[y, x] = (1f - normalizedDepth) * terrainDepthMultiplier; // Invert depth to height mapping
             }
         }
 
-        // Store new heightmap in buffer for smoothing
-        if (pastHeightMaps.Count >= heightmapBufferSize)
-        {
-            pastHeightMaps.Dequeue(); // Remove oldest heightmap
-        }
-        pastHeightMaps.Enqueue(newHeightMap);
-
-        // Apply averaged heightmap for stability
-        float[,] averagedHeightMap = AverageHeightMaps(pastHeightMaps, width, height);
-        terrain.terrainData.SetHeights(0, 0, averagedHeightMap);
-
+        terrain.terrainData.SetHeights(0, 0, heightMap);
         SyncTerrainColliderWithTerrain();
     }
+
+    /*
+    public void GenerateTerrainFromDepthData()
+        {
+            int width = depthResolution.x;
+            int height = depthResolution.y;
+
+            float[,] oldHeightMap = terrain.terrainData.GetHeights(0, 0, width, height);
+            float[,] newHeightMap = new float[height, width];
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = y * width + x;
+                    ushort depth = rawDepthData[index];
+
+                    if (depth == 0)
+                    {
+                        depth = GetValidDepth(x, y, rawDepthData);
+                    }
+
+                    float normalizedDepth = Mathf.InverseLerp(minDepth, maxDepth, depth);
+                    float newHeight = (1f - normalizedDepth) * terrainDepthMultiplier;
+
+                    // Check if the height difference is significant
+                    if (Mathf.Abs(newHeight - oldHeightMap[y, x]) > heightChangeThreshold)
+                    {
+                        newHeightMap[y, x] = newHeight;
+                    }
+                    else
+                    {
+                        newHeightMap[y, x] = oldHeightMap[y, x]; // Keep old height to reduce flickering
+                    }
+                }
+            }
+
+            // Store new heightmap in buffer for smoothing
+            if (pastHeightMaps.Count >= heightmapBufferSize)
+            {
+                pastHeightMaps.Dequeue(); // Remove oldest heightmap
+            }
+            pastHeightMaps.Enqueue(newHeightMap);
+
+            // Apply averaged heightmap for stability
+            float[,] averagedHeightMap = AverageHeightMaps(pastHeightMaps, width, height);
+            terrain.terrainData.SetHeights(0, 0, averagedHeightMap);
+
+            SyncTerrainColliderWithTerrain();
+        }
+    */
 
     private float[,] AverageHeightMaps(Queue<float[,]> heightMaps, int width, int height)
     {
