@@ -26,6 +26,8 @@ public class Enemy : MonoBehaviour
     private Pathfinding pathfinding; // Reference to pathfinding system
     private GridManager grid; // Reference to the grid
 
+    private bool isAttackingCastle = false; // ✅ NEW: flag to stop movement when at the castle
+
     // private NavMeshAgent agent; // NAVMESH REMOVED
 
     void Start()
@@ -58,7 +60,7 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
-        if (path != null && pathIndex < path.Count)
+        if (!isAttackingCastle && path != null && pathIndex < path.Count)
         {
             Vector3 nextPosition = path[pathIndex].worldPosition;
 
@@ -160,6 +162,15 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(float damage)
     {
         health.TakeDamage(damage);
+    }
+
+    private void OnTriggerEnter(Collider other) // ✅ NEW: trigger castle attack mode
+    {
+        if (other.CompareTag("Castle"))
+        {
+            isAttackingCastle = true;
+            Debug.Log("⚔️ Enemy collided with the castle and stopped to attack.");
+        }
     }
 
     /*
