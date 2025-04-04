@@ -28,7 +28,9 @@ public class GridManager : MonoBehaviour
                 worldPoint.y = terrain.SampleHeight(worldPoint); // Adjust y-coordinate based on terrain height
 
                 // Check if this node is walkable (not inside an obstacle)
-                bool walkable = !Physics.CheckSphere(worldPoint, nodeSize / 64, obstacleMask);
+                float checkRadius = nodeSize * 0.5f;
+                bool walkable = !Physics.CheckSphere(worldPoint + Vector3.up * 2f, checkRadius, obstacleMask);
+
                 if (!walkable)
                 {
                     Debug.Log($"🚧 Obstacle detected at {worldPoint}");

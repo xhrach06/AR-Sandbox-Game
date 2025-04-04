@@ -141,7 +141,7 @@ MonoBehaviour:
   attackCooldown: 1
   damageToCastle: 10
   moveSpeed: 2.5
-  avoidRadius: 5
+  avoidRadius: 10
   health: {fileID: 0}
   offsetDistance: 2
   barrierPassChance: 50
