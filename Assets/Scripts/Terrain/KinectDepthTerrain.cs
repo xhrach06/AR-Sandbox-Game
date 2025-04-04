@@ -9,8 +9,8 @@ public class KinectDepthTerrain : MonoBehaviour
     private ushort[] rawDepthData;
     public Vector2 terrainRotation;
     public readonly Vector2Int depthResolution = new Vector2Int(512, 424);
-    private const ushort minDepth = 900;
-    private const ushort maxDepth = 1250;
+    public ushort minDepth = 900;
+    public ushort maxDepth = 1250;
     bool mirrorDepth = true;
     public float lowlandsThreshold = 0.33f; // Default value
     public float plainsThreshold = 0.66f;  // Default value
@@ -82,6 +82,38 @@ public class KinectDepthTerrain : MonoBehaviour
     {
         isCalibrationRunning = true; // Enable real-time Kinect updates
         Debug.Log("🔹 Kinect depth terrain updates enabled.");
+    }
+
+    public float[,] GetDepthMap()
+    {
+        int width = depthResolution.x;
+        int height = depthResolution.y;
+        float[,] depthMap = new float[height, width];
+
+        if (rawDepthData == null || rawDepthData.Length == 0)
+        {
+            Debug.LogError("❌ GetDepthMap: No depth data available!");
+            return depthMap;
+        }
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int index = y * width + x;
+                ushort depth = rawDepthData[index];
+
+                if (depth == 0)
+                {
+                    depth = GetValidDepth(x, y, rawDepthData);
+                }
+
+                // Normalize depth and store in map
+                depthMap[y, x] = Mathf.InverseLerp(minDepth, maxDepth, depth);
+            }
+        }
+
+        return depthMap;
     }
 
 
