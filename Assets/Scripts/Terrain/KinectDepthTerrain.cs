@@ -179,7 +179,9 @@ public class KinectDepthTerrain : MonoBehaviour
 
         Debug.LogError("❌ Kinect failed to initialize after multiple attempts.");
     }
-
+    /// <summary>
+    /// dsadasd
+    /// </summary>
     public void GenerateTerrainFromDepthData()
     {
         int width = depthResolution.x;
