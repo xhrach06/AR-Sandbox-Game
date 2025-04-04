@@ -23,7 +23,6 @@ public class KinectDepthTerrain : MonoBehaviour
     public TerrainLayer lowLandsLayer;
     public TerrainLayer plainsLayer;
     public TerrainLayer rocksLayer;
-
     public bool isCalibrationRunning = true; // Continually update terrain during calibration
     private float updateTimer = 0f;
     private float updateInterval = 0.2f; // Update terrain every 0.2 seconds
@@ -56,7 +55,10 @@ public class KinectDepthTerrain : MonoBehaviour
         if (terrain.terrainData.terrainLayers == null || terrain.terrainData.terrainLayers.Length == 0)
         {
             Debug.LogWarning("⚠ No terrain layers found. Assigning default layers.");
-            terrain.terrainData.terrainLayers = new TerrainLayer[] { lowLandsLayer, plainsLayer, rocksLayer };
+            terrain.terrainData.terrainLayers = new TerrainLayer[] {
+    lowLandsLayer, plainsLayer, rocksLayer
+};
+
         }
 
         // 🔹 Adjust only required terrain properties (instead of resetting the whole TerrainData)
@@ -279,7 +281,8 @@ public class KinectDepthTerrain : MonoBehaviour
 
         int alphamapWidth = terrain.terrainData.alphamapWidth;
         int alphamapHeight = terrain.terrainData.alphamapHeight;
-        float[,,] splatMap = new float[alphamapWidth, alphamapHeight, 3];
+        int layerCount = terrain.terrainData.alphamapLayers;
+        float[,,] splatMap = new float[alphamapWidth, alphamapHeight, layerCount];
 
         for (int y = 0; y < alphamapHeight; y++)
         {
