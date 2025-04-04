@@ -140,10 +140,11 @@ MonoBehaviour:
   attackRange: 10
   attackCooldown: 1
   damageToCastle: 10
-  moveSpeed: 5
+  moveSpeed: 2.5
   avoidRadius: 5
   health: {fileID: 0}
   offsetDistance: 2
+  barrierPassChance: 50
 --- !u!54 &-5392666909813495536
 Rigidbody:
   m_ObjectHideFlags: 0
