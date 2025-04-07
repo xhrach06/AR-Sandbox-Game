@@ -143,7 +143,8 @@ public class GameManager : MonoBehaviour
     {
         gameRunning = false;
         Debug.Log(message);
-
+        HudManager hudManager = FindObjectOfType<HudManager>();
+        hudManager.SetGameOverText(message);
         if (terrainPainter != null)
         {
             Debug.Log("Reverting terrain at the end of the game.");

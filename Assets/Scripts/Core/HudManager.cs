@@ -11,6 +11,7 @@ public class HudManager : MonoBehaviour
     public TMP_Text TimerContainer;
     public TMP_Text KillCountContainer;
     public TMP_Text EnemyCounterContainer;
+    public TMP_Text GameOverTextContainer;
     public float timer = 0.0f;
     void Update()
     {
@@ -29,5 +30,9 @@ public class HudManager : MonoBehaviour
     public void SetEnemyCounter(int killCount)
     {
         EnemyCounterContainer.text = $"Enemies Defeated: {killCount}";
+    }
+    public void SetGameOverText(string message)
+    {
+        GameOverTextContainer.text = $"{message}";
     }
 }
