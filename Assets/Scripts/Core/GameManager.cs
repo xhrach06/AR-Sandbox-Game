@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviour
     private bool gameRunning = false;
     private PresetManager presetManager;
 
-    public float terrainUpdateInterval = 2f; // ✅ Update interval for live terrain and paths
+    public float terrainUpdateInterval = 1f; // ✅ Update interval for live terrain and paths
 
     void Awake()
     {
@@ -120,8 +120,8 @@ public class GameManager : MonoBehaviour
             if (kinectDepthTerrain != null)
             {
                 Debug.Log("🔄 Updating live terrain from Kinect...");
-                kinectDepthTerrain.GenerateTerrainFromDepthData();
-                kinectDepthTerrain.ApplyTexturesBasedOnHeight();
+                kinectDepthTerrain.CheckAndUpdateTerrain();
+
             }
 
             if (gridManager != null)

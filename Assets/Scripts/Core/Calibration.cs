@@ -23,6 +23,9 @@ public class Calibration : MonoBehaviour
     public float verticalMoveSpeed = 5f;
 
     private PresetManager presetManager;
+    private float terrainUpdateTimer = 0f;
+    private const float terrainUpdateInterval = 0.5f;
+
 
     private void Start()
     {
@@ -52,10 +55,6 @@ public class Calibration : MonoBehaviour
     {
         HandleCameraMovement();
 
-        /*if (Input.GetKeyDown(KeyCode.S)) // S to Save Preset
-        {
-            presetManager.SavePreset();
-        }*/
         if (Input.GetKeyDown(KeyCode.C)) // C for Castle
         {
             RegisterPosition("castle");
@@ -68,7 +67,16 @@ public class Calibration : MonoBehaviour
         {
             RegisterPosition("enemy");
         }
+
+        // 🔄 Update terrain every 0.5 seconds during calibration
+        terrainUpdateTimer += Time.deltaTime;
+        if (terrainUpdateTimer >= terrainUpdateInterval)
+        {
+            kinectDepthTerrain.CheckAndUpdateTerrain();
+            terrainUpdateTimer = 0f;
+        }
     }
+
 
     public void VisualizePreset()
     {
