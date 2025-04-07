@@ -48,9 +48,21 @@ public class Health : MonoBehaviour
     // Method to destroy object when health reaches zero
     void Die()
     {
+        // Destroy linked health bar if it exists
         if (linkedHealthBar != null)
         {
             Destroy(linkedHealthBar);
+        }
+
+        // If this is an enemy, notify the EnemyManager
+        Enemy enemyComponent = GetComponent<Enemy>();
+        if (enemyComponent != null)
+        {
+            EnemyManager enemyManager = FindObjectOfType<EnemyManager>();
+            if (enemyManager != null)
+            {
+                enemyManager.HandleEnemyDeath(enemyComponent);
+            }
         }
 
         Destroy(gameObject);

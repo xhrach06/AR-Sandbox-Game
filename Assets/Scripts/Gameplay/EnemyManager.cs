@@ -12,7 +12,8 @@ public class EnemyManager : MonoBehaviour
     private bool spawningEnemies = false;
     public GridManager grid;
     public Pathfinding pathfinding;
-
+    private List<Enemy> activeEnemies = new List<Enemy>();
+    private int enemiesDefeated = 0;
     void Start()
     {
         //grid = FindObjectOfType<GridManager>();
@@ -24,6 +25,12 @@ public class EnemyManager : MonoBehaviour
         if (pathfinding == null)
         {
             Debug.LogError("❌ EnemyManager: PathFinding is missing! Pathfinding won't work.");
+        }
+        HudManager hud = FindObjectOfType<HudManager>();
+        if (hud != null)
+        {
+            hud.SetKillCounter(0);
+            hud.SetEnemyCounter(0);
         }
     }
 
@@ -96,6 +103,9 @@ public class EnemyManager : MonoBehaviour
             if (enemyScript != null && castle != null)
             {
                 enemyScript.SetTarget(castle);
+                activeEnemies.Add(enemyScript);
+                FindObjectOfType<HudManager>()?.SetKillCounter(activeEnemies.Count);
+                enemyScript.OnEnemyDeath += HandleEnemyDeath;
             }
 
             yield return new WaitForSeconds(spawnInterval);
@@ -106,12 +116,23 @@ public class EnemyManager : MonoBehaviour
     {
         castle = castleTransform;
     }
-
-    /// <summary>
-    /// / clear active enemies
-    /// </summary>
     public void StopSpawning()
     {
         spawningEnemies = false;
+        activeEnemies.Clear();
     }
+    public void HandleEnemyDeath(Enemy deadEnemy)
+    {
+        activeEnemies.Remove(deadEnemy);
+        enemiesDefeated++;
+
+        // Update HUD
+        HudManager hud = FindObjectOfType<HudManager>();
+        if (hud != null)
+        {
+            hud.SetKillCounter(activeEnemies.Count);
+            hud.SetEnemyCounter(enemiesDefeated);
+        }
+    }
+
 }

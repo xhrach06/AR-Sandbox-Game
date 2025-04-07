@@ -18,12 +18,11 @@ public class GameManager : MonoBehaviour
     public int numberOfTowers = 3;
     public float gameDuration = 120f;
 
-    private float timer;
+    public float timer;
     private bool gameRunning = false;
     private PresetManager presetManager;
 
     public float terrainUpdateInterval = 1f; // ✅ Update interval for live terrain and paths
-
     void Awake()
     {
         Instance = this;

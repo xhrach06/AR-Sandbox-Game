@@ -26,6 +26,7 @@ public class Enemy : MonoBehaviour
     private int pathIndex = 0; // Tracks position in the path
     private Pathfinding pathfinding; // Reference to pathfinding system
     private GridManager grid; // Reference to the grid
+    public System.Action<Enemy> OnEnemyDeath;
 
     private bool isAttackingCastle = false; // ✅ NEW: flag to stop movement when at the castle
     private bool isInitialized = false;
