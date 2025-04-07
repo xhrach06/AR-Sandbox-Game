@@ -166,7 +166,7 @@ public class KinectDepthTerrain : MonoBehaviour
             ApplyTexturesBasedOnHeight();
             lastTextureUpdateTime = Time.time;
         }
-
+        NotifyEnemiesToRecalculatePaths();
         previousDepthSnapshot = (ushort[])rawDepthData.Clone();
     }
 
@@ -206,6 +206,15 @@ public class KinectDepthTerrain : MonoBehaviour
 
         previousDepthSnapshot = (ushort[])rawDepthData.Clone();
 
+    }
+
+    private void NotifyEnemiesToRecalculatePaths()
+    {
+        Enemy[] allEnemies = FindObjectsOfType<Enemy>();
+        foreach (Enemy enemy in allEnemies)
+        {
+            enemy.FindNewPath();
+        }
     }
 
     private bool DepthChanged()

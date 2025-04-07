@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 public class Enemy : MonoBehaviour
 {
+    private LineRenderer pathLine;
     public float baseHealth = 100f;
     public float baseDamage = 10f;
     public float attackRange = 10f;
@@ -27,11 +28,13 @@ public class Enemy : MonoBehaviour
     private GridManager grid; // Reference to the grid
 
     private bool isAttackingCastle = false; // ✅ NEW: flag to stop movement when at the castle
+    private bool isInitialized = false;
 
     // private NavMeshAgent agent; // NAVMESH REMOVED
     public GameObject healthBarPrefab;
     void Start()
     {
+        pathLine = GetComponent<LineRenderer>();
         health = GetComponent<Health>();
         currentHealth = baseHealth;
         currentDamage = baseDamage;
@@ -75,8 +78,10 @@ public class Enemy : MonoBehaviour
             Mathf.Clamp(transform.position.z, 0, grid.gridSize.y * grid.nodeSize)
         );
         transform.position = clampedPosition;
+        //InvokeRepeating("FindNewPath", 0f, 1f);
+        isInitialized = true;
+        FindNewPath();
 
-        InvokeRepeating("FindNewPath", 0f, 1f);
     }
     void Update()
     {
@@ -135,23 +140,25 @@ public class Enemy : MonoBehaviour
                 }
                 */
     // 🔹 Find a new path to the castle using A*
-    void FindNewPath()
+    public void FindNewPath()
     {
-        if (target != null)
-        {
-            path = pathfinding.FindPath(transform.position, target.position);
-            pathIndex = 0;
+        if (!isInitialized || pathfinding == null || target == null) return;
 
-            if (path == null || path.Count == 0)
-            {
-                Debug.LogError("❌ Enemy did not receive a valid path!");
-            }
-            else
-            {
-                Debug.Log($"✅ Enemy path received! Moving towards {path.Count} nodes.");
-            }
+        path = pathfinding.FindPath(transform.position, target.position);
+        pathIndex = 0;
+
+        if (path == null || path.Count == 0)
+        {
+            Debug.LogError("❌ Enemy did not receive a valid path!");
         }
+        else
+        {
+            Debug.Log($"✅ Enemy path received! Moving towards {path.Count} nodes.");
+        }
+
+        DrawPathRuntime();
     }
+
 
     // 🔹 Set the target for the enemy
     public void SetTarget(Transform newTarget)
@@ -218,7 +225,7 @@ public class Enemy : MonoBehaviour
     */
 
     // 🔹 Visualize enemy path
-    void DrawPath()
+    void OnDrawGizmos()
     {
         if (path != null && path.Count > 0)
         {
@@ -236,4 +243,20 @@ public class Enemy : MonoBehaviour
             }
         }
     }
+    public void DrawPathRuntime()
+    {
+        if (path == null || path.Count < 2 || pathLine == null)
+        {
+            pathLine.positionCount = 0;
+            return;
+        }
+
+        pathLine.positionCount = path.Count;
+
+        for (int i = 0; i < path.Count; i++)
+        {
+            pathLine.SetPosition(i, path[i].worldPosition + Vector3.up * 0.5f); // slightly above ground
+        }
+    }
+
 }
