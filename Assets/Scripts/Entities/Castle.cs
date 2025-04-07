@@ -8,20 +8,39 @@ public class Castle : MonoBehaviour
     public float attackDamage = 30f;
     public float attackCooldown = 3f;
     public Transform firePoint;
-    
+
     public Health health;
     private float lastAttackTime;
     private readonly List<Transform> enemiesInRange = new List<Transform>();
-
+    public GameObject healthBarPrefab;
 
     void Start()
     {
-        health = GetComponent<Health>(); // Get the Health component
+        health = GetComponent<Health>();
         if (health == null)
         {
             Debug.LogError("Health component is missing on " + gameObject.name);
+            return;
         }
+
+        GameObject bar = Instantiate(healthBarPrefab, GameObject.Find("HealthBarCanvas").transform);
+
+        FollowWorldTarget follow = bar.GetComponent<FollowWorldTarget>();
+        if (follow != null)
+        {
+            follow.SetTarget(transform);
+        }
+
+        HealthBar healthBar = bar.GetComponent<HealthBar>();
+        if (healthBar != null)
+        {
+            healthBar.SetHealth(health);
+        }
+        Debug.Log("💡 Spawned health bar for " + gameObject.name);
+
     }
+
+
 
     void Update()
     {
@@ -50,7 +69,7 @@ public class Castle : MonoBehaviour
         Projectile projScript = projectile.GetComponent<Projectile>();
         if (projScript != null)
         {
-            projScript.SetTarget(target, 30f); 
+            projScript.SetTarget(target, 30f);
         }
     }
 

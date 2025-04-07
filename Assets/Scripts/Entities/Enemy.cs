@@ -29,16 +29,29 @@ public class Enemy : MonoBehaviour
     private bool isAttackingCastle = false; // ✅ NEW: flag to stop movement when at the castle
 
     // private NavMeshAgent agent; // NAVMESH REMOVED
-
+    public GameObject healthBarPrefab;
     void Start()
     {
-        // agent = GetComponent<NavMeshAgent>(); // NAVMESH REMOVED
         health = GetComponent<Health>();
         currentHealth = baseHealth;
         currentDamage = baseDamage;
 
-        pathfinding = FindObjectOfType<Pathfinding>(); // A* Pathfinding System
-        grid = FindObjectOfType<GridManager>(); // Grid for pathfinding
+        pathfinding = FindObjectOfType<Pathfinding>();
+        grid = FindObjectOfType<GridManager>();
+
+        GameObject bar = Instantiate(healthBarPrefab, GameObject.Find("HealthBarCanvas").transform);
+
+        FollowWorldTarget follow = bar.GetComponent<FollowWorldTarget>();
+        if (follow != null)
+        {
+            follow.SetTarget(transform);
+        }
+
+        HealthBar healthBar = bar.GetComponent<HealthBar>();
+        if (healthBar != null)
+        {
+            healthBar.SetHealth(health);
+        }
 
         if (target == null)
             target = GameObject.FindGameObjectWithTag("Castle").transform;
@@ -46,17 +59,18 @@ public class Enemy : MonoBehaviour
         if (target != null)
             targetHealth = target.GetComponent<Health>();
 
-        // Ensure enemy starts inside the grid
         Vector3 clampedPosition = new Vector3(
             Mathf.Clamp(transform.position.x, 0, grid.gridSize.x * grid.nodeSize),
             transform.position.y,
             Mathf.Clamp(transform.position.z, 0, grid.gridSize.y * grid.nodeSize)
         );
         transform.position = clampedPosition;
+        Debug.Log("💡 Spawned health bar for " + gameObject.name);
 
-        // Call FindNewPath every 1 second to update movement
         InvokeRepeating("FindNewPath", 0f, 1f);
     }
+
+
 
     void Update()
     {

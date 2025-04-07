@@ -194,7 +194,7 @@ public class KinectDepthTerrain : MonoBehaviour
 
         if (!DepthChanged()) return;
 
-        Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
+        //Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
 
         //GenerateTerrainFromDepthData();
 

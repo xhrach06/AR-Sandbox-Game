@@ -12,15 +12,34 @@ public class Tower : MonoBehaviour
     private float lastAttackTime;
     private readonly List<Transform> enemiesInRange = new List<Transform>();
     private Health health;
-
+    public GameObject healthBarPrefab;
     void Start()
     {
         health = GetComponent<Health>();
         if (health == null)
         {
             Debug.LogError("Health component is missing on Tower: " + gameObject.name);
+            return;
         }
+
+        GameObject bar = Instantiate(healthBarPrefab, GameObject.Find("HealthBarCanvas").transform);
+
+        FollowWorldTarget follow = bar.GetComponent<FollowWorldTarget>();
+        if (follow != null)
+        {
+            follow.SetTarget(transform);
+        }
+
+        HealthBar healthBar = bar.GetComponent<HealthBar>();
+        if (healthBar != null)
+        {
+            healthBar.SetHealth(health);
+        }
+        Debug.Log("💡 Spawned health bar for " + gameObject.name);
+
     }
+
+
 
     void Update()
     {
