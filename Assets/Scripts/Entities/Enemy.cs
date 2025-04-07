@@ -39,18 +39,28 @@ public class Enemy : MonoBehaviour
         pathfinding = FindObjectOfType<Pathfinding>();
         grid = FindObjectOfType<GridManager>();
 
-        GameObject bar = Instantiate(healthBarPrefab, GameObject.Find("HealthBarCanvas").transform);
-
-        FollowWorldTarget follow = bar.GetComponent<FollowWorldTarget>();
-        if (follow != null)
+        GameObject canvas = GameObject.Find("HealthBarCanvas");
+        if (canvas != null && healthBarPrefab != null)
         {
-            follow.SetTarget(transform);
+            GameObject bar = Instantiate(healthBarPrefab, canvas.transform);
+
+            FollowWorldTarget follow = bar.GetComponent<FollowWorldTarget>();
+            if (follow != null)
+            {
+                follow.SetTarget(transform);
+            }
+
+            HealthBar healthBar = bar.GetComponent<HealthBar>();
+            if (healthBar != null)
+            {
+                healthBar.SetHealth(health);
+            }
+            health.SetLinkedHealthBar(bar);
+            Debug.Log("Enemy health: " + health.GetCurrentHealth());
         }
-
-        HealthBar healthBar = bar.GetComponent<HealthBar>();
-        if (healthBar != null)
+        else
         {
-            healthBar.SetHealth(health);
+            Debug.LogError("❌ HealthBarCanvas or HealthBarPrefab missing for " + gameObject.name);
         }
 
         if (target == null)
@@ -65,13 +75,9 @@ public class Enemy : MonoBehaviour
             Mathf.Clamp(transform.position.z, 0, grid.gridSize.y * grid.nodeSize)
         );
         transform.position = clampedPosition;
-        Debug.Log("💡 Spawned health bar for " + gameObject.name);
 
         InvokeRepeating("FindNewPath", 0f, 1f);
     }
-
-
-
     void Update()
     {
         if (!isAttackingCastle && path != null && pathIndex < path.Count)
@@ -89,28 +95,7 @@ public class Enemy : MonoBehaviour
                     nextPosition += directionAway * offsetDistance; // Adjust position to move around the tower
                 }
             }
-            /*
-            // 🔹 Check for nearby barriers
-            Collider[] nearbyBarriers = Physics.OverlapSphere(transform.position, avoidRadius);
-            foreach (var barrierCollider in nearbyBarriers)
-            {
-                if (barrierCollider.CompareTag("Barrier"))
-                {
-                    float passChance = Random.Range(0f, 100f); // Roll a random chance
 
-                    if (passChance > barrierPassChance)
-                    {
-                        Debug.Log("❌ Enemy avoids the barrier! Recalculating path...");
-                        FindNewPath(); // Force path recalculation
-                        return; // Stop further movement processing
-                    }
-                    else
-                    {
-                        Debug.Log("✅ Enemy crosses the barrier!");
-                    }
-                }
-            }
-            */
             // 🔹 Move towards the next node in the path
             transform.position = Vector3.MoveTowards(transform.position, nextPosition, moveSpeed * Time.deltaTime);
 
@@ -127,7 +112,28 @@ public class Enemy : MonoBehaviour
             Attack();
         }
     }
+    /*
+                // 🔹 Check for nearby barriers
+                Collider[] nearbyBarriers = Physics.OverlapSphere(transform.position, avoidRadius);
+                foreach (var barrierCollider in nearbyBarriers)
+                {
+                    if (barrierCollider.CompareTag("Barrier"))
+                    {
+                        float passChance = Random.Range(0f, 100f); // Roll a random chance
 
+                        if (passChance > barrierPassChance)
+                        {
+                            Debug.Log("❌ Enemy avoids the barrier! Recalculating path...");
+                            FindNewPath(); // Force path recalculation
+                            return; // Stop further movement processing
+                        }
+                        else
+                        {
+                            Debug.Log("✅ Enemy crosses the barrier!");
+                        }
+                    }
+                }
+                */
     // 🔹 Find a new path to the castle using A*
     void FindNewPath()
     {
@@ -176,6 +182,7 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(float damage)
     {
         health.TakeDamage(damage);
+        Debug.Log("took damage: " + damage);
     }
 
     private void OnTriggerEnter(Collider other) // ✅ NEW: trigger castle attack mode
@@ -211,7 +218,7 @@ public class Enemy : MonoBehaviour
     */
 
     // 🔹 Visualize enemy path
-    void OnDrawGizmos()
+    void DrawPath()
     {
         if (path != null && path.Count > 0)
         {

@@ -170,10 +170,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   projectilePrefab: {fileID: 3369391029596936009, guid: 8bb6aaa077062524ab6bdacb58813b1d, type: 3}
   attackRange: 15
-  attackCooldown: 2
-  attackDamage: 20
+  attackCooldown: 1
+  attackDamage: 25
   firePoint: {fileID: 2674660292408354397}
-  healthBarPrefab: {fileID: 2883427980921697344, guid: 57e8c2ae43a5c2e4cb7448e63b46d784, type: 3}
+  healthBarPrefab: {fileID: 5162456313399883726, guid: 57e8c2ae43a5c2e4cb7448e63b46d784, type: 3}
 --- !u!135 &3596393429362269356
 SphereCollider:
   m_ObjectHideFlags: 0

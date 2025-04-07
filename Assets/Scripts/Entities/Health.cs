@@ -4,17 +4,21 @@ public class Health : MonoBehaviour
 {
     public float maxHealth = 100f;
     private float currentHealth;
-
+    private GameObject linkedHealthBar;
     void Start()
     {
         currentHealth = maxHealth;
+    }
+    public void SetLinkedHealthBar(GameObject bar)
+    {
+        linkedHealthBar = bar;
     }
 
     // Method to take damage
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
-        //Debug.Log(gameObject.name + " took damage: " + damage + ". Current health: " + currentHealth);
+        Debug.Log(gameObject.name + " took damage: " + damage + ". Current health: " + currentHealth);
         if (currentHealth <= 0f)
         {
             Die();
@@ -44,8 +48,12 @@ public class Health : MonoBehaviour
     // Method to destroy object when health reaches zero
     void Die()
     {
-        // Optionally add particle effect or sound before destruction
+        if (linkedHealthBar != null)
+        {
+            Destroy(linkedHealthBar);
+        }
+
         Destroy(gameObject);
-        //Debug.Log(gameObject.name + " has been destroyed!");
     }
+
 }

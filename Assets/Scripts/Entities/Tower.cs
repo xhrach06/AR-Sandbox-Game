@@ -18,16 +18,27 @@ public class Tower : MonoBehaviour
         health = GetComponent<Health>();
         if (health == null)
         {
-            Debug.LogError("Health component is missing on Tower: " + gameObject.name);
+            Debug.LogError("❌ Health component is missing on " + gameObject.name);
             return;
         }
 
-        GameObject bar = Instantiate(healthBarPrefab, GameObject.Find("HealthBarCanvas").transform);
+        GameObject canvas = GameObject.Find("HealthBarCanvas");
+        if (canvas == null)
+        {
+            Debug.LogError("❌ HealthBarCanvas not found in the scene!");
+            return;
+        }
+
+        GameObject bar = Instantiate(healthBarPrefab, canvas.transform);
 
         FollowWorldTarget follow = bar.GetComponent<FollowWorldTarget>();
         if (follow != null)
         {
             follow.SetTarget(transform);
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ No FollowWorldTarget found on HealthBar prefab!");
         }
 
         HealthBar healthBar = bar.GetComponent<HealthBar>();
@@ -35,12 +46,14 @@ public class Tower : MonoBehaviour
         {
             healthBar.SetHealth(health);
         }
+        else
+        {
+            Debug.LogWarning("⚠️ No HealthBar script found on HealthBar prefab!");
+        }
+        health.SetLinkedHealthBar(bar);
+
         Debug.Log("💡 Spawned health bar for " + gameObject.name);
-
     }
-
-
-
     void Update()
     {
         // Remove any destroyed enemies from the list

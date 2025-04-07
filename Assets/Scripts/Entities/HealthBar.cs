@@ -6,6 +6,12 @@ public class HealthBar : MonoBehaviour
     [SerializeField] private Health health;
     [SerializeField] private Image fillImage;
 
+    void Awake()
+    {
+        if (fillImage == null)
+            fillImage = GetComponentInChildren<Image>(); // auto assigns the first found image (likely Fill)
+    }
+
     void Update()
     {
         if (health != null && fillImage != null)

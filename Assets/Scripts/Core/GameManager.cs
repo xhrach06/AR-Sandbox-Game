@@ -31,28 +31,6 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        if (healthBarCanvas != null && Camera.main != null)
-        {
-            Transform cam = Camera.main.transform;
-
-            // ✅ Position canvas directly in view of a top-down camera
-            healthBarCanvas.transform.position = cam.position + (-cam.up * 10f); // move it "down" from the camera's perspective
-
-            // ✅ Face the canvas back toward the camera
-            healthBarCanvas.transform.rotation = Quaternion.LookRotation(cam.up); // faces up toward camera
-
-            // ✅ Keep the canvas small
-            healthBarCanvas.transform.localScale = Vector3.one * 0.01f;
-
-            Debug.Log($"📸 Camera Pos: {cam.position}, Rot: {cam.rotation.eulerAngles}");
-            Debug.Log($"🖼️ Canvas Pos: {healthBarCanvas.transform.position}, Rot: {healthBarCanvas.transform.rotation.eulerAngles}");
-        }
-        else
-        {
-            Debug.LogWarning("⚠️ HealthBarCanvas or Camera is missing!");
-        }
-
-
         terrain = FindObjectOfType<Terrain>();
         gridManager = FindObjectOfType<GridManager>();
         kinectDepthTerrain = FindObjectOfType<KinectDepthTerrain>();

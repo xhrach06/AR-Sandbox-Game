@@ -173,7 +173,7 @@ MonoBehaviour:
   attackCooldown: 3
   firePoint: {fileID: 4570386850769100412}
   health: {fileID: 0}
-  healthBarPrefab: {fileID: 2883427980921697344, guid: 57e8c2ae43a5c2e4cb7448e63b46d784, type: 3}
+  healthBarPrefab: {fileID: 5162456313399883726, guid: 57e8c2ae43a5c2e4cb7448e63b46d784, type: 3}
 --- !u!54 &8289915393328153707
 Rigidbody:
   m_ObjectHideFlags: 0
