@@ -139,7 +139,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void EndGame(string message)
+    public void EndGame(string message)
     {
         gameRunning = false;
         Debug.Log(message);

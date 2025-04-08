@@ -86,11 +86,12 @@ public class Enemy : MonoBehaviour
     }
     void Update()
     {
+        // 🔹 Enemy movement toward path nodes (if not attacking the castle)
         if (!isAttackingCastle && path != null && pathIndex < path.Count)
         {
             Vector3 nextPosition = path[pathIndex].worldPosition;
 
-            // 🔹 Check for nearby towers and adjust path to avoid them
+            // 🔹 Avoid nearby towers by adjusting movement
             Collider[] nearbyTowers = Physics.OverlapSphere(transform.position, avoidRadius);
             foreach (var towerCollider in nearbyTowers)
             {
@@ -98,26 +99,30 @@ public class Enemy : MonoBehaviour
                 {
                     Vector3 towerPosition = towerCollider.transform.position;
                     Vector3 directionAway = (transform.position - towerPosition).normalized;
-                    nextPosition += directionAway * offsetDistance; // Adjust position to move around the tower
+                    nextPosition += directionAway * offsetDistance;
                 }
             }
 
-            // 🔹 Move towards the next node in the path
+            // 🔹 Move toward next path node
             transform.position = Vector3.MoveTowards(transform.position, nextPosition, moveSpeed * Time.deltaTime);
 
-            // If the enemy reaches the node, move to the next one
             if (Vector3.Distance(transform.position, nextPosition) < 0.5f)
                 pathIndex++;
 
             Debug.Log($"🚶 Enemy moving to next node. Path Index: {pathIndex}/{path.Count}");
         }
 
-        // 🔹 Attack if in range of the castle
-        if (target != null && Vector3.Distance(transform.position, target.position) < attackRange)
+        // 🔹 Attack logic:
+        if (isAttackingCastle && targetHealth != null)
         {
-            Attack();
+            Attack(); // Actively attacking while inside the castle
+        }
+        else if (target != null && Vector3.Distance(transform.position, target.position) < attackRange)
+        {
+            Attack(); // Attack if close enough, even if not collided yet
         }
     }
+
     /*
                 // 🔹 Check for nearby barriers
                 Collider[] nearbyBarriers = Physics.OverlapSphere(transform.position, avoidRadius);
@@ -193,7 +198,7 @@ public class Enemy : MonoBehaviour
         Debug.Log("took damage: " + damage);
     }
 
-    private void OnTriggerEnter(Collider other) // ✅ NEW: trigger castle attack mode
+    private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Castle"))
         {

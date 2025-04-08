@@ -36,6 +36,11 @@ public class CastleManager : MonoBehaviour
         }
     }
 
+    public void HandleCastleDestroyed()
+    {
+        GameManager gameManager = FindObjectOfType<GameManager>();
+        gameManager.EndGame("Game Over! The castle was destroyed.");
+    }
 
 
     public Transform GetCastleTransform()

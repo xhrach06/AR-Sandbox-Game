@@ -123,7 +123,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f1697f877a627147b7e84b14ee4e78d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 60
+  maxHealth: 374.2
 --- !u!114 &1195870686237555080
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -138,7 +138,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseHealth: 100
   baseDamage: 10
-  attackRange: 10
+  attackRange: 30
   attackCooldown: 1
   damageToCastle: 10
   moveSpeed: 2.5

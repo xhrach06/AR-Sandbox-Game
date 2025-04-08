@@ -3,6 +3,7 @@ using UnityEngine;
 public class Health : MonoBehaviour
 {
     public float maxHealth = 100f;
+    public System.Action HandleCastleDestroyed;
     private float currentHealth;
     private GameObject linkedHealthBar;
     void Start()
@@ -63,6 +64,12 @@ public class Health : MonoBehaviour
             {
                 enemyManager.HandleEnemyDeath(enemyComponent);
             }
+        }
+        Castle castleComponent = GetComponent<Castle>();
+        if (castleComponent != null)
+        {
+            CastleManager castleManager = FindObjectOfType<CastleManager>();
+            castleManager.HandleCastleDestroyed();
         }
 
         Destroy(gameObject);
