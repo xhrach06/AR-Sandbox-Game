@@ -57,7 +57,7 @@ public class KinectDepthTerrain : MonoBehaviour
 
         heightMapCache = new float[depthResolution.y, depthResolution.x];
 
-        SyncTerrainColliderWithTerrain();
+        //SyncTerrainColliderWithTerrain();
 
         // 🔹 Ensure terrain layers are assigned
         if (terrain.terrainData.terrainLayers == null || terrain.terrainData.terrainLayers.Length == 0)
@@ -289,7 +289,7 @@ public class KinectDepthTerrain : MonoBehaviour
         }
 
         terrain.terrainData.SetHeights(0, 0, heightMap);
-        SyncTerrainColliderWithTerrain();
+        //SyncTerrainColliderWithTerrain();
     }
 
     private float[,] AverageHeightMaps(Queue<float[,]> heightMaps, int width, int height)
@@ -403,7 +403,7 @@ public class KinectDepthTerrain : MonoBehaviour
         {
             HeightmapData savedHeightmap = JsonUtility.FromJson<HeightmapData>(heightmapJson);
             terrain.terrainData.SetHeights(0, 0, savedHeightmap.To2DArray());
-            SyncTerrainColliderWithTerrain();
+            //SyncTerrainColliderWithTerrain();
             ApplyTexturesBasedOnHeight();
             SmoothTerrain(3, 0.6f);
             // navMeshSurface.BuildNavMesh();
