@@ -120,22 +120,15 @@ public class GameManager : MonoBehaviour
             if (kinectDepthTerrain != null)
             {
                 Debug.Log("🔄 Updating live terrain from Kinect...");
-                kinectDepthTerrain.CheckAndUpdateTerrain();
-
+                if (kinectDepthTerrain.CheckAndUpdateTerrain())
+                {
+                    if (gridManager != null)
+                    {
+                        Debug.Log("🔄 Re-generating pathfinding grid...");
+                        gridManager.GenerateGrid();
+                    }
+                }
             }
-
-            if (gridManager != null)
-            {
-                Debug.Log("🔄 Re-generating pathfinding grid...");
-                gridManager.GenerateGrid();
-            }
-            /*
-            if (spellManager != null)
-            {
-                spellManager.DetectMeteorStrike();
-                spellManager.DetectBarrier();
-            }
-            */
         }
     }
 

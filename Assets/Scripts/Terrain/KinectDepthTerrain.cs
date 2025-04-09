@@ -138,74 +138,32 @@ public class KinectDepthTerrain : MonoBehaviour
         }
     }
 
-    public void CheckAndUpdateTerrain()
+    public bool CheckAndUpdateTerrain()
     {
         //if (!isCalibrationRunning) return;
 
         if (multiSourceManager == null)
         {
             Debug.LogError("❌ KinectDepthTerrain: MultiSourceManager is NULL! Cannot get Kinect data.");
-            return;
+            return false;
         }
 
         rawDepthData = multiSourceManager.GetDepthData();
         if (rawDepthData == null || rawDepthData.Length == 0)
         {
             Debug.LogError("❌ Kinect depth data is NULL! Skipping terrain update.");
-            return;
+            return false;
         }
 
-        if (!DepthChanged()) return;
+        if (!DepthChanged()) return false;
 
         Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
 
         GenerateTerrainFromDepthData();
-
-        if (Time.time - lastTextureUpdateTime > textureUpdateCooldown)
-        {
-            ApplyTexturesBasedOnHeight();
-            lastTextureUpdateTime = Time.time;
-        }
+        ApplyTexturesBasedOnHeight();
         NotifyEnemiesToRecalculatePaths();
         previousDepthSnapshot = (ushort[])rawDepthData.Clone();
-    }
-
-
-    private void Update()
-    {
-        //if (!isCalibrationRunning) return;
-
-        updateTimer += Time.deltaTime;
-        if (updateTimer < updateInterval) return; // Prevent excessive updates
-        updateTimer = 0f;
-
-        if (multiSourceManager == null)
-        {
-            Debug.LogError("❌ KinectDepthTerrain: MultiSourceManager is NULL! Cannot get Kinect data.");
-            return;
-        }
-
-        rawDepthData = multiSourceManager.GetDepthData();
-        if (rawDepthData == null || rawDepthData.Length == 0)
-        {
-            Debug.LogError("❌ Kinect depth data is NULL! Skipping terrain update.");
-            return;
-        }
-
-        if (!DepthChanged()) return;
-
-        //Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
-
-        //GenerateTerrainFromDepthData();
-
-        if (Time.time - lastTextureUpdateTime > textureUpdateCooldown)
-        {
-            ApplyTexturesBasedOnHeight();
-            lastTextureUpdateTime = Time.time;
-        }
-
-        previousDepthSnapshot = (ushort[])rawDepthData.Clone();
-
+        return true;
     }
 
     private void NotifyEnemiesToRecalculatePaths()

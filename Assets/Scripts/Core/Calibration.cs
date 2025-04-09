@@ -72,8 +72,8 @@ public class Calibration : MonoBehaviour
         terrainUpdateTimer += Time.deltaTime;
         if (terrainUpdateTimer >= terrainUpdateInterval)
         {
-            kinectDepthTerrain.CheckAndUpdateTerrain();
-            terrainUpdateTimer = 0f;
+            if (kinectDepthTerrain.CheckAndUpdateTerrain())
+                terrainUpdateTimer = 0f;
         }
     }
 
