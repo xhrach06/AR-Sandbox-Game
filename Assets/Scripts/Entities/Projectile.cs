@@ -8,6 +8,8 @@ public class Projectile : MonoBehaviour
     private Transform target;
     public float lifetime = 5f; // Time until the projectile is destroyed if it doesn't hit anything
     private float lifetimeTimer; // Timer to track projectile's lifetime
+    private Vector3 moveDirection;
+    private bool isMiss = false;
 
     // Set the target of the projectile
     public void SetTarget(Transform newTarget, float attackDamage)
@@ -17,11 +19,24 @@ public class Projectile : MonoBehaviour
         lifetimeTimer = 0f; // Reset timer when a target is set
     }
 
+    public void SetMissDirection(Vector3 dir)
+    {
+        moveDirection = dir;
+        isMiss = true;
+        Destroy(gameObject, 3f); // auto-destroy after flying away
+    }
+
     void Update()
     {
+        if (isMiss)
+        {
+            transform.position += moveDirection * speed * Time.deltaTime;
+            return;
+        }
+
         if (target == null)
         {
-            Destroy(gameObject); 
+            Destroy(gameObject);
             return;
         }
 
