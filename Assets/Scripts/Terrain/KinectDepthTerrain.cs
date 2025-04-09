@@ -42,27 +42,27 @@ public class KinectDepthTerrain : MonoBehaviour
         string dllPath = System.IO.Path.Combine(Application.dataPath, "Plugins/KinectUnityAddin.dll");
         if (System.IO.File.Exists(dllPath))
         {
-            Debug.Log("✅ Kinect DLL Found in Build: " + dllPath);
+            //Debug.Log("✅ Kinect DLL Found in Build: " + dllPath);
         }
         else
         {
-            Debug.LogWarning("❌ Kinect DLL MISSING! Ensure it is in the Plugins folder.");
+            //Debug.LogWarning("❌ Kinect DLL MISSING! Ensure it is in the Plugins folder.");
         }
 
         if (terrain == null)
         {
-            Debug.LogError("❌ Terrain component not assigned.");
+            //Debug.LogError("❌ Terrain component not assigned.");
             return;
         }
 
         heightMapCache = new float[depthResolution.y, depthResolution.x];
 
-        SyncTerrainColliderWithTerrain();
+        //SyncTerrainColliderWithTerrain();
 
         // 🔹 Ensure terrain layers are assigned
         if (terrain.terrainData.terrainLayers == null || terrain.terrainData.terrainLayers.Length == 0)
         {
-            Debug.LogWarning("⚠ No terrain layers found. Assigning default layers.");
+            //Debug.LogWarning("⚠ No terrain layers found. Assigning default layers.");
             terrain.terrainData.terrainLayers = new TerrainLayer[] {
                 lowLandsLayer, plainsLayer, rocksLayer
             };
@@ -75,13 +75,13 @@ public class KinectDepthTerrain : MonoBehaviour
         // 🔹 Load saved terrain if available, otherwise start Kinect updates
         if (PlayerPrefs.HasKey("SavedHeightmap"))
         {
-            Debug.Log("📌 Saved heightmap found. Loading...");
+            //Debug.Log("📌 Saved heightmap found. Loading...");
             LoadSavedTerrain();
             isCalibrationRunning = false; // Stop Kinect updates
         }
         else
         {
-            Debug.Log("📌 No saved heightmap. Starting Kinect updates.");
+            //Debug.Log("📌 No saved heightmap. Starting Kinect updates.");
             isCalibrationRunning = true;
         }
     }
@@ -89,7 +89,7 @@ public class KinectDepthTerrain : MonoBehaviour
     public void EnableLiveKinectTerrain()
     {
         isCalibrationRunning = true; // Enable real-time Kinect updates
-        Debug.Log("🔹 Kinect depth terrain updates enabled.");
+        //Debug.Log("🔹 Kinect depth terrain updates enabled.");
     }
 
     public float[,] GetDepthMap()
@@ -100,7 +100,7 @@ public class KinectDepthTerrain : MonoBehaviour
 
         if (rawDepthData == null || rawDepthData.Length == 0)
         {
-            Debug.LogError("❌ GetDepthMap: No depth data available!");
+            //Debug.LogError("❌ GetDepthMap: No depth data available!");
             return depthMap;
         }
 
@@ -130,11 +130,11 @@ public class KinectDepthTerrain : MonoBehaviour
         if (terrainCollider != null && terrainCollider.terrainData != terrain.terrainData)
         {
             terrainCollider.terrainData = terrain.terrainData;
-            Debug.Log("TerrainCollider synced with TerrainData.");
+            //Debug.Log("TerrainCollider synced with TerrainData.");
         }
         else
         {
-            Debug.Log("TerrainCollider already synced with TerrainData.");
+            //Debug.Log("TerrainCollider already synced with TerrainData.");
         }
     }
 
@@ -144,20 +144,20 @@ public class KinectDepthTerrain : MonoBehaviour
 
         if (multiSourceManager == null)
         {
-            Debug.LogError("❌ KinectDepthTerrain: MultiSourceManager is NULL! Cannot get Kinect data.");
+            //Debug.LogError("❌ KinectDepthTerrain: MultiSourceManager is NULL! Cannot get Kinect data.");
             return;
         }
 
         rawDepthData = multiSourceManager.GetDepthData();
         if (rawDepthData == null || rawDepthData.Length == 0)
         {
-            Debug.LogError("❌ Kinect depth data is NULL! Skipping terrain update.");
+            //Debug.LogError("❌ Kinect depth data is NULL! Skipping terrain update.");
             return;
         }
 
         if (!DepthChanged()) return;
 
-        Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
+        //Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
 
         GenerateTerrainFromDepthData();
 
@@ -181,20 +181,20 @@ public class KinectDepthTerrain : MonoBehaviour
 
         if (multiSourceManager == null)
         {
-            Debug.LogError("❌ KinectDepthTerrain: MultiSourceManager is NULL! Cannot get Kinect data.");
+            //Debug.LogError("❌ KinectDepthTerrain: MultiSourceManager is NULL! Cannot get Kinect data.");
             return;
         }
 
         rawDepthData = multiSourceManager.GetDepthData();
         if (rawDepthData == null || rawDepthData.Length == 0)
         {
-            Debug.LogError("❌ Kinect depth data is NULL! Skipping terrain update.");
+            //Debug.LogError("❌ Kinect depth data is NULL! Skipping terrain update.");
             return;
         }
 
         if (!DepthChanged()) return;
 
-        //Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
+        ////Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
 
         //GenerateTerrainFromDepthData();
 
@@ -252,15 +252,15 @@ public class KinectDepthTerrain : MonoBehaviour
             rawDepthData = multiSourceManager.GetDepthData();
             if (rawDepthData != null && rawDepthData.Length > 0)
             {
-                Debug.Log("✅ Kinect reconnected successfully.");
+                //Debug.Log("✅ Kinect reconnected successfully.");
                 yield break;
             }
 
             attempts++;
-            Debug.LogWarning($"⚠️ Kinect reconnect attempt {attempts}/5 failed.");
+            //Debug.LogWarning($"⚠️ Kinect reconnect attempt {attempts}/5 failed.");
         }
 
-        Debug.LogError("❌ Kinect failed to initialize after multiple attempts.");
+        //Debug.LogError("❌ Kinect failed to initialize after multiple attempts.");
     }
 
     public void GenerateTerrainFromDepthData()
@@ -289,7 +289,7 @@ public class KinectDepthTerrain : MonoBehaviour
         }
 
         terrain.terrainData.SetHeights(0, 0, heightMap);
-        SyncTerrainColliderWithTerrain();
+        //SyncTerrainColliderWithTerrain();
     }
 
     private float[,] AverageHeightMaps(Queue<float[,]> heightMaps, int width, int height)
@@ -335,7 +335,7 @@ public class KinectDepthTerrain : MonoBehaviour
     {
         if (terrain.terrainData.alphamapLayers == 0)
         {
-            Debug.LogError("No terrain layers are assigned in the TerrainData! Please assign layers to the terrain.");
+            //Debug.LogError("No terrain layers are assigned in the TerrainData! Please assign layers to the terrain.");
             return;
         }
 
@@ -378,7 +378,7 @@ public class KinectDepthTerrain : MonoBehaviour
         }
 
         terrain.terrainData.SetAlphamaps(0, 0, splatMap);
-        Debug.Log("✅ Terrain textures applied successfully.");
+        //Debug.Log("✅ Terrain textures applied successfully.");
     }
 
     public void SaveTerrain()
@@ -392,45 +392,45 @@ public class KinectDepthTerrain : MonoBehaviour
 
         SmoothTerrain(3, 0.6f);
         // navMeshSurface.BuildNavMesh();
-        Debug.Log("Terrain saved and NavMesh updated.");
+        //Debug.Log("Terrain saved and NavMesh updated.");
     }
 
     private void LoadSavedTerrain()
     {
-        Debug.Log("Attempting to load saved terrain...");
+        //Debug.Log("Attempting to load saved terrain...");
         string heightmapJson = PlayerPrefs.GetString("SavedHeightmap", "");
         if (!string.IsNullOrEmpty(heightmapJson))
         {
             HeightmapData savedHeightmap = JsonUtility.FromJson<HeightmapData>(heightmapJson);
             terrain.terrainData.SetHeights(0, 0, savedHeightmap.To2DArray());
-            SyncTerrainColliderWithTerrain();
+            //SyncTerrainColliderWithTerrain();
             ApplyTexturesBasedOnHeight();
             SmoothTerrain(3, 0.6f);
             // navMeshSurface.BuildNavMesh();
         }
         else
         {
-            Debug.LogError("No saved heightmap found!");
+            //Debug.LogError("No saved heightmap found!");
         }
     }
 
     public void DebugKinect()
     {
-        Debug.Log("🔍 Checking Kinect connection...");
+        //Debug.Log("🔍 Checking Kinect connection...");
 
         if (multiSourceManager == null)
         {
-            Debug.LogError("❌ MultiSourceManager not assigned!");
+            //Debug.LogError("❌ MultiSourceManager not assigned!");
             return;
         }
 
         if (multiSourceManager.GetDepthData() == null)
         {
-            Debug.LogError("❌ Kinect depth data is NULL! Kinect might not be detected.");
+            //Debug.LogError("❌ Kinect depth data is NULL! Kinect might not be detected.");
         }
         else
         {
-            Debug.Log("✅ Kinect is detected and providing depth data.");
+            // Debug.Log("✅ Kinect is detected and providing depth data.");
         }
     }
 
@@ -457,6 +457,6 @@ public class KinectDepthTerrain : MonoBehaviour
         }
 
         terrain.terrainData.SetHeights(0, 0, heightmap);
-        Debug.Log("Terrain smoothing applied.");
+        //Debug.Log("Terrain smoothing applied.");
     }
 }
