@@ -161,19 +161,29 @@ public class KinectDepthTerrain : MonoBehaviour
 
         GenerateTerrainFromDepthData();
         ApplyTexturesBasedOnHeight();
-        NotifyEnemiesToRecalculatePaths();
+        if (previousDepthSnapshot == null || previousDepthSnapshot.Length != rawDepthData.Length)
+            previousDepthSnapshot = new ushort[rawDepthData.Length];
+
+        System.Array.Copy(rawDepthData, previousDepthSnapshot, rawDepthData.Length);
+
         previousDepthSnapshot = (ushort[])rawDepthData.Clone();
         return true;
     }
 
-    private void NotifyEnemiesToRecalculatePaths()
+    public IEnumerator NotifyEnemiesToRecalculatePaths()
     {
         Enemy[] allEnemies = FindObjectsOfType<Enemy>();
-        foreach (Enemy enemy in allEnemies)
+
+        for (int i = 0; i < allEnemies.Length; i++)
         {
-            enemy.FindNewPath();
+            allEnemies[i].FindNewPath();
+
+            // Spread over time — every few enemies, yield control
+            if (i % 5 == 0)
+                yield return null; // Wait one frame after every 5
         }
     }
+
 
     private bool DepthChanged()
     {

@@ -123,29 +123,6 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    /*
-                // 🔹 Check for nearby barriers
-                Collider[] nearbyBarriers = Physics.OverlapSphere(transform.position, avoidRadius);
-                foreach (var barrierCollider in nearbyBarriers)
-                {
-                    if (barrierCollider.CompareTag("Barrier"))
-                    {
-                        float passChance = Random.Range(0f, 100f); // Roll a random chance
-
-                        if (passChance > barrierPassChance)
-                        {
-                            Debug.Log("❌ Enemy avoids the barrier! Recalculating path...");
-                            FindNewPath(); // Force path recalculation
-                            return; // Stop further movement processing
-                        }
-                        else
-                        {
-                            Debug.Log("✅ Enemy crosses the barrier!");
-                        }
-                    }
-                }
-                */
-    // 🔹 Find a new path to the castle using A*
     public void FindNewPath()
     {
         if (!isInitialized || pathfinding == null || target == null) return;

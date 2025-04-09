@@ -127,6 +127,7 @@ public class GameManager : MonoBehaviour
                         Debug.Log("🔄 Re-generating pathfinding grid...");
                         gridManager.GenerateGrid();
                     }
+                    StartCoroutine(kinectDepthTerrain.NotifyEnemiesToRecalculatePaths());
                 }
             }
         }
