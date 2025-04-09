@@ -34,7 +34,7 @@ public class Calibration : MonoBehaviour
         if (presetManager == null)
         {
             presetManager.calibrationRunning = true;
-            Debug.LogError("❌ No PresetManager found in the scene!");
+            //Debug.LogError("❌ No PresetManager found in the scene!");
             return;
         }
         // 🔹 Enable Kinect and dynamically generate terrain during calibration
@@ -42,13 +42,13 @@ public class Calibration : MonoBehaviour
         kinectDepthTerrain.EnableLiveKinectTerrain();
         kinectDepthTerrain.SyncTerrainColliderWithTerrain();
 
-        Debug.Log("📌 Calibration mode: Kinect terrain generation is active.");
+        //Debug.Log("📌 Calibration mode: Kinect terrain generation is active.");
 
         //kinectDepthTerrain.DebugKinect();
 
         presetManager.LoadPreset(); // Load the selected preset
         VisualizePreset();
-        Debug.Log("🔹 Select preset, adjust camera, place entities, then save.");
+        //Debug.Log("🔹 Select preset, adjust camera, place entities, then save.");
     }
 
     private void Update()
@@ -112,7 +112,7 @@ public class Calibration : MonoBehaviour
             spawnedEntities.Add(enemySpawn);
         }
 
-        Debug.Log("✅ Preset visualized with terrain height adjustment.");
+        //Debug.Log("✅ Preset visualized with terrain height adjustment.");
     }
 
     private void ClearVisualization()
@@ -141,7 +141,7 @@ public class Calibration : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Click did not hit the terrain.");
+            //Debug.LogWarning("Click did not hit the terrain.");
         }
     }
 
@@ -162,7 +162,7 @@ public class Calibration : MonoBehaviour
         SaveTerrainHeightmap();
 
         PlayerPrefs.Save();
-        Debug.Log("✅ Calibration settings saved.");
+        //Debug.Log("✅ Calibration settings saved.");
         GoToMainMenu();
     }
 

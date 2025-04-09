@@ -13,11 +13,20 @@ public class HudManager : MonoBehaviour
     public TMP_Text EnemyCounterContainer;
     public TMP_Text GameOverTextContainer;
     public float timer = 0.0f;
+    private int lastDisplayedTime = -1;
+
     void Update()
     {
         timer += Time.deltaTime;
-        SetTime(timer);
+        int timeInt = (int)timer;
+
+        if (timeInt != lastDisplayedTime)
+        {
+            SetTime(timeInt);
+            lastDisplayedTime = timeInt;
+        }
     }
+
     public void SetTime(float time)
     {
         time = (int)time;

@@ -16,7 +16,7 @@ public class Meteor : MonoBehaviour
         if (other.CompareTag("Enemy"))
         {
             other.GetComponent<Enemy>().TakeDamage(damage);
-            Debug.Log("💥 Enemy hit by meteor!");
+            //Debug.Log("💥 Enemy hit by meteor!");
         }
 
         Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);

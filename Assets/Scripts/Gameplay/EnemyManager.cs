@@ -20,11 +20,11 @@ public class EnemyManager : MonoBehaviour
         //pathfinding = FindObjectOfType<Pathfinding>();
         if (grid == null)
         {
-            Debug.LogError("❌ EnemyManager: GridManager is missing! Pathfinding won't work.");
+            //Debug.LogError("❌ EnemyManager: GridManager is missing! Pathfinding won't work.");
         }
         if (pathfinding == null)
         {
-            Debug.LogError("❌ EnemyManager: PathFinding is missing! Pathfinding won't work.");
+            //Debug.LogError("❌ EnemyManager: PathFinding is missing! Pathfinding won't work.");
         }
         HudManager hud = FindObjectOfType<HudManager>();
         if (hud != null)
@@ -41,7 +41,7 @@ public class EnemyManager : MonoBehaviour
 
         if (spawnPoints.Count == 0)
         {
-            Debug.LogError("EnemyManager: No valid enemy spawn points found in preset!");
+            //Debug.LogError("EnemyManager: No valid enemy spawn points found in preset!");
             return;
         }
 
@@ -58,11 +58,11 @@ public class EnemyManager : MonoBehaviour
             if (node != null && node.walkable)
             {
                 validSpawnPoints.Add(node.worldPosition);
-                Debug.Log($"✅ Enemy spawn point adjusted to: {node.worldPosition}");
+                //Debug.Log($"✅ Enemy spawn point adjusted to: {node.worldPosition}");
             }
             else
             {
-                Debug.LogWarning($"⚠️ Enemy spawn point {adjustedSpawn} is not walkable! Skipping...");
+                //Debug.LogWarning($"⚠️ Enemy spawn point {adjustedSpawn} is not walkable! Skipping...");
             }
         }
 
@@ -74,7 +74,7 @@ public class EnemyManager : MonoBehaviour
     {
         if (spawnPoints.Count == 0)
         {
-            Debug.LogError("EnemyManager: Cannot start spawning. No spawn points available.");
+            //Debug.LogError("EnemyManager: Cannot start spawning. No spawn points available.");
             return;
         }
 
@@ -92,7 +92,7 @@ public class EnemyManager : MonoBehaviour
             Node node = grid.GetNodeFromWorldPosition(spawnPoint);
             if (node == null || !node.walkable)
             {
-                Debug.LogWarning($"⚠️ Enemy spawn point {spawnPoint} is not walkable! Skipping...");
+                //Debug.LogWarning($"⚠️ Enemy spawn point {spawnPoint} is not walkable! Skipping...");
                 yield return null;
                 continue;
             }

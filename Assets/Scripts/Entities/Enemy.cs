@@ -60,11 +60,11 @@ public class Enemy : MonoBehaviour
                 healthBar.SetHealth(health);
             }
             health.SetLinkedHealthBar(bar);
-            Debug.Log("Enemy health: " + health.GetCurrentHealth());
+            //Debug.Log("Enemy health: " + health.GetCurrentHealth());
         }
         else
         {
-            Debug.LogError("❌ HealthBarCanvas or HealthBarPrefab missing for " + gameObject.name);
+            //Debug.LogError("❌ HealthBarCanvas or HealthBarPrefab missing for " + gameObject.name);
         }
 
         if (target == null)
@@ -109,7 +109,7 @@ public class Enemy : MonoBehaviour
             if (Vector3.Distance(transform.position, nextPosition) < 0.5f)
                 pathIndex++;
 
-            Debug.Log($"🚶 Enemy moving to next node. Path Index: {pathIndex}/{path.Count}");
+            //Debug.Log($"🚶 Enemy moving to next node. Path Index: {pathIndex}/{path.Count}");
         }
 
         // 🔹 Attack logic:
@@ -134,13 +134,13 @@ public class Enemy : MonoBehaviour
 
                         if (passChance > barrierPassChance)
                         {
-                            Debug.Log("❌ Enemy avoids the barrier! Recalculating path...");
+                            //Debug.Log("❌ Enemy avoids the barrier! Recalculating path...");
                             FindNewPath(); // Force path recalculation
                             return; // Stop further movement processing
                         }
                         else
                         {
-                            Debug.Log("✅ Enemy crosses the barrier!");
+                            //Debug.Log("✅ Enemy crosses the barrier!");
                         }
                     }
                 }
@@ -155,11 +155,11 @@ public class Enemy : MonoBehaviour
 
         if (path == null || path.Count == 0)
         {
-            Debug.LogError("❌ Enemy did not receive a valid path!");
+            //Debug.LogError("❌ Enemy did not receive a valid path!");
         }
         else
         {
-            Debug.Log($"✅ Enemy path received! Moving towards {path.Count} nodes.");
+            //Debug.Log($"✅ Enemy path received! Moving towards {path.Count} nodes.");
         }
 
         DrawPathRuntime();
@@ -187,7 +187,7 @@ public class Enemy : MonoBehaviour
         if (targetHealth != null && Time.time - lastAttackTime > attackCooldown)
         {
             targetHealth.TakeDamage(currentDamage);
-            Debug.Log("Enemy attacked " + target.name + " for " + currentDamage + " damage.");
+            //Debug.Log("Enemy attacked " + target.name + " for " + currentDamage + " damage.");
             lastAttackTime = Time.time;
         }
     }
@@ -195,7 +195,7 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(float damage)
     {
         health.TakeDamage(damage);
-        Debug.Log("took damage: " + damage);
+        //Debug.Log("took damage: " + damage);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -203,7 +203,7 @@ public class Enemy : MonoBehaviour
         if (other.CompareTag("Castle"))
         {
             isAttackingCastle = true;
-            Debug.Log("⚔️ Enemy collided with the castle and stopped to attack.");
+            //Debug.Log("⚔️ Enemy collided with the castle and stopped to attack.");
         }
     }
 

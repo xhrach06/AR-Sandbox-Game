@@ -20,7 +20,7 @@ public class TowerManager : MonoBehaviour
             Vector3 adjustedPosition = new Vector3(positions[i].x, terrainHeight + 1f, positions[i].z);
 
             GameObject tower = Instantiate(towerPrefab, adjustedPosition, Quaternion.identity);
-            Debug.Log($"🏗 Tower {i} placed at: {adjustedPosition}");
+            //Debug.Log($"🏗 Tower {i} placed at: {adjustedPosition}");
         }
     }
 

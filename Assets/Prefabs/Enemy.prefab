@@ -141,7 +141,7 @@ MonoBehaviour:
   attackRange: 30
   attackCooldown: 1
   damageToCastle: 10
-  moveSpeed: 2.5
+  moveSpeed: 5
   avoidRadius: 10
   health: {fileID: 0}
   offsetDistance: 2

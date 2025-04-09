@@ -37,7 +37,7 @@ public class GameManager : MonoBehaviour
 
         if (terrain == null || kinectDepthTerrain == null)
         {
-            Debug.LogError("❌ GameManager: Terrain or KinectDepthTerrain not found!");
+            //Debug.LogError("❌ GameManager: Terrain or KinectDepthTerrain not found!");
             return;
         }
 
@@ -72,40 +72,40 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator DelayedGameInitialization()
     {
-        Debug.Log("⏳ Waiting for terrain to fully load...");
+        //Debug.Log("⏳ Waiting for terrain to fully load...");
         yield return new WaitForSeconds(1f);
 
-        Debug.Log("🏰 Placing castle and towers...");
+        //Debug.Log("🏰 Placing castle and towers...");
         castleManager.PlaceCastle();
         towerManager.PlaceTowers();
 
         if (gridManager != null)
         {
-            Debug.Log("🔄 Re-generating grid after placing towers...");
+            //Debug.Log("🔄 Re-generating grid after placing towers...");
             gridManager.GenerateGrid();
         }
         else
         {
-            Debug.LogError("❌ GridManager not found! Pathfinding may not work correctly.");
+            //Debug.LogError("❌ GridManager not found! Pathfinding may not work correctly.");
         }
 
         Transform castleTransform = castleManager.GetCastleTransform();
         if (castleTransform != null)
         {
-            Debug.Log($"🏰 Castle transform found: {castleTransform.position}");
+            //Debug.Log($"🏰 Castle transform found: {castleTransform.position}");
             enemyManager.SetCastleTarget(castleTransform);
         }
         else
         {
-            Debug.LogError("❌ Castle transform is NULL! Enemies won't have a target.");
+            //Debug.LogError("❌ Castle transform is NULL! Enemies won't have a target.");
         }
 
-        Debug.Log("🛠 Initializing enemy spawn points...");
+        //Debug.Log("🛠 Initializing enemy spawn points...");
         enemyManager.InitializeSpawnPoints();
 
         yield return new WaitForSeconds(1f);
 
-        Debug.Log("🚀 Starting enemy spawning...");
+        //Debug.Log("🚀 Starting enemy spawning...");
         enemyManager.StartSpawningEnemiesContinuously();
 
         gameRunning = true;
@@ -119,14 +119,14 @@ public class GameManager : MonoBehaviour
 
             if (kinectDepthTerrain != null)
             {
-                Debug.Log("🔄 Updating live terrain from Kinect...");
+                //Debug.Log("🔄 Updating live terrain from Kinect...");
                 kinectDepthTerrain.CheckAndUpdateTerrain();
 
             }
 
             if (gridManager != null)
             {
-                Debug.Log("🔄 Re-generating pathfinding grid...");
+                //Debug.Log("🔄 Re-generating pathfinding grid...");
                 gridManager.GenerateGrid();
             }
             /*
@@ -142,12 +142,12 @@ public class GameManager : MonoBehaviour
     public void EndGame(string message)
     {
         gameRunning = false;
-        Debug.Log(message);
+        //Debug.Log(message);
         HudManager hudManager = FindObjectOfType<HudManager>();
         hudManager.SetGameOverText(message);
         if (terrainPainter != null)
         {
-            Debug.Log("Reverting terrain at the end of the game.");
+            //Debug.Log("Reverting terrain at the end of the game.");
             terrainPainter.RevertTerrain();
         }
 
@@ -159,7 +159,7 @@ public class GameManager : MonoBehaviour
     {
         if (terrainPainter != null)
         {
-            Debug.Log("Reverting terrain on application quit.");
+            //Debug.Log("Reverting terrain on application quit.");
             terrainPainter.RevertTerrain();
         }
     }

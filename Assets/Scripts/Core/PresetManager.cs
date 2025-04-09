@@ -32,7 +32,7 @@ public class PresetManager : MonoBehaviour
         LoadPreset();
         if (calibrationRunning)
             calibration.VisualizePreset();
-        Debug.Log($"🔹 Selected preset: {selectedPreset}");
+        //Debug.Log($"🔹 Selected preset: {selectedPreset}");
     }
 
     public void SavePreset()
@@ -40,7 +40,7 @@ public class PresetManager : MonoBehaviour
         string filePath = GetPresetFilePath();
         string json = JsonUtility.ToJson(presetData, true);
         File.WriteAllText(filePath, json);
-        Debug.Log($"✅ Preset '{selectedPreset}' saved to: {filePath}");
+        //Debug.Log($"✅ Preset '{selectedPreset}' saved to: {filePath}");
     }
 
     public void LoadPreset()
@@ -50,21 +50,21 @@ public class PresetManager : MonoBehaviour
         {
             string json = File.ReadAllText(filePath);
             presetData = JsonUtility.FromJson<PresetData>(json);
-            Debug.Log($"📌 Preset '{selectedPreset}' loaded.");
+            //Debug.Log($"📌 Preset '{selectedPreset}' loaded.");
         }
         else
         {
             presetData = new PresetData();
-            Debug.LogWarning($"⚠ Preset '{selectedPreset}' not found. Creating new preset.");
+            //Debug.LogWarning($"⚠ Preset '{selectedPreset}' not found. Creating new preset.");
         }
     }
 
     public void DisplayPresetCounts()
     {
-        Debug.Log($"📌 Preset: {selectedPreset}");
-        Debug.Log($"🏰 Castle: {(presetData.castlePositions.Count > 0 ? "✔ Present" : "❌ Not Set")}");
-        Debug.Log($"🗼 Towers: {presetData.towerPositions.Count}");
-        Debug.Log($"👹 Enemy Spawns: {presetData.enemySpawnPositions.Count}");
+        //Debug.Log($"📌 Preset: {selectedPreset}");
+        //Debug.Log($"🏰 Castle: {(presetData.castlePositions.Count > 0 ? "✔ Present" : "❌ Not Set")}");
+        //Debug.Log($"🗼 Towers: {presetData.towerPositions.Count}");
+        //Debug.Log($"👹 Enemy Spawns: {presetData.enemySpawnPositions.Count}");
     }
 
     public void ClearCastle()
@@ -73,11 +73,11 @@ public class PresetManager : MonoBehaviour
         {
             presetData.castlePositions.Clear();
             SavePreset();
-            Debug.Log($"✅ All castles removed from {selectedPreset}.");
+            //Debug.Log($"✅ All castles removed from {selectedPreset}.");
         }
         else
         {
-            Debug.Log("⚠ No castle data found. Nothing to delete.");
+            //Debug.Log("⚠ No castle data found. Nothing to delete.");
         }
     }
 

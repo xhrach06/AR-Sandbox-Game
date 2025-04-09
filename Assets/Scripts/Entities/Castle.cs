@@ -53,7 +53,7 @@ public class Castle : MonoBehaviour
         }
         health.SetLinkedHealthBar(bar);
 
-        Debug.Log("💡 Spawned health bar for " + gameObject.name);
+        //Debug.Log("💡 Spawned health bar for " + gameObject.name);
     }
     void Update()
     {
@@ -74,7 +74,7 @@ public class Castle : MonoBehaviour
 
     void Shoot(Transform target)
     {
-        //Debug.Log("Shooting at: " + target.name);
+        ////Debug.Log("Shooting at: " + target.name);
 
         if (projectilePrefab == null || firePoint == null) return;
 
@@ -95,7 +95,7 @@ public class Castle : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Health component is missing on " + gameObject.name + ", unable to take damage!");
+            //Debug.LogError("Health component is missing on " + gameObject.name + ", unable to take damage!");
         }
     }
     void OnTriggerEnter(Collider other)
