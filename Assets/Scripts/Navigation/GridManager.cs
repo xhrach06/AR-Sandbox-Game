@@ -48,7 +48,7 @@ public class GridManager : MonoBehaviour
 
                 float heightCost = Mathf.Abs(worldPoint.y - terrain.SampleHeight(worldPoint));
 
-                grid[x, y] = new Node(worldPoint, walkable, heightCost);
+                grid[x, y] = new Node(worldPoint, walkable, heightCost, x, y);
             }
         }
     }
