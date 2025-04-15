@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class Tower : MonoBehaviour
 {
     public GameObject projectilePrefab;
@@ -16,6 +16,16 @@ public class Tower : MonoBehaviour
     private readonly List<Transform> enemiesInRange = new List<Transform>();
     private Health health;
     public GameObject healthBarPrefab;
+
+
+    void Awake()
+    {
+        if (SceneManager.GetActiveScene().name == "CalibrationScene")
+        {
+            this.enabled = false; // ⛔ disable this script entirely
+            return;
+        }
+    }
 
     void Start()
     {

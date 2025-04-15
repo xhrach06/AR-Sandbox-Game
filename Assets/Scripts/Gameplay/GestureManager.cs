@@ -1,3 +1,5 @@
+/*
+
 using UnityEngine;
 using System.Collections;
 using System.Net.Sockets;
@@ -94,3 +96,4 @@ public class GestureManager : MonoBehaviour
         Debug.Log("🔥 Meteor summoned at " + position);
     }
 }
+*/

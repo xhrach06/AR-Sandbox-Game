@@ -45,9 +45,8 @@ public class Calibration : MonoBehaviour
         Debug.Log("📌 Calibration mode: Kinect terrain generation is active.");
 
         //kinectDepthTerrain.DebugKinect();
+        StartCoroutine(DelayedVisualization());
 
-        presetManager.LoadPreset(); // Load the selected preset
-        VisualizePreset();
         Debug.Log("🔹 Select preset, adjust camera, place entities, then save.");
     }
 
@@ -75,6 +74,12 @@ public class Calibration : MonoBehaviour
             if (kinectDepthTerrain.CheckAndUpdateTerrain())
                 terrainUpdateTimer = 0f;
         }
+    }
+    private IEnumerator DelayedVisualization()
+    {
+        yield return new WaitForSeconds(0.5f); // Allow terrain height to update
+        presetManager.LoadPreset();
+        VisualizePreset();
     }
 
 
@@ -170,13 +175,13 @@ public class Calibration : MonoBehaviour
     {
         TerrainData terrainData = kinectDepthTerrain.terrain.terrainData;
         float[,] heightmap = terrainData.GetHeights(0, 0, terrainData.heightmapResolution, terrainData.heightmapResolution);
-        kinectDepthTerrain.isCalibrationRunning = false;
+        //kinectDepthTerrain.isCalibrationRunning = false;
 
         string heightmapJson = JsonUtility.ToJson(new HeightmapData(heightmap));
         PlayerPrefs.SetString("SavedHeightmap", heightmapJson);
 
         // 🔹 Stop Kinect updates AFTER saving terrain
-        kinectDepthTerrain.SaveTerrain();
+        //kinectDepthTerrain.SaveTerrain();
         kinectDepthTerrain.enabled = false;
     }
 

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class Castle : MonoBehaviour
 {
     public GameObject projectilePrefab;
@@ -14,8 +14,19 @@ public class Castle : MonoBehaviour
     private readonly List<Transform> enemiesInRange = new List<Transform>();
     public GameObject healthBarPrefab;
 
+
+    void Awake()
+    {
+        if (SceneManager.GetActiveScene().name == "CalibrationScene")
+        {
+            this.enabled = false; // ⛔ disable this script entirely
+            return;
+        }
+    }
+
     void Start()
     {
+
         health = GetComponent<Health>();
         if (health == null)
         {

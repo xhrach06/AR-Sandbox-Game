@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 
 public class EnemyManager : MonoBehaviour
 {
+    public static EnemyManager Instance { get; private set; }
     public GameObject enemyPrefab;
     public Transform castle;
     public float spawnInterval = 2f;
@@ -14,6 +16,11 @@ public class EnemyManager : MonoBehaviour
     public Pathfinding pathfinding;
     private List<Enemy> activeEnemies = new List<Enemy>();
     private int enemiesDefeated = 0;
+
+    void Awake()
+    {
+        Instance = this;
+    }
     void Start()
     {
         //grid = FindObjectOfType<GridManager>();
@@ -110,6 +117,11 @@ public class EnemyManager : MonoBehaviour
 
             yield return new WaitForSeconds(spawnInterval);
         }
+    }
+
+    public List<Enemy> GetAllEnemies()
+    {
+        return activeEnemies;
     }
 
     public void SetCastleTarget(Transform castleTransform)

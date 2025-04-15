@@ -1,129 +1,53 @@
 using UnityEngine;
-using Unity.AI.Navigation; // Required for NavMesh
-using System.Linq;
+using Unity.AI.Navigation;
 using System.Collections;
 using System.Collections.Generic;
 
 public class KinectDepthTerrain : MonoBehaviour
 {
     [SerializeField] public MultiSourceManager multiSourceManager;
-    private ushort[] rawDepthData;
+    public Terrain terrain;
+    public float terrainDepthMultiplier = 0.1f;
     public Vector2 terrainRotation;
     public readonly Vector2Int depthResolution = new Vector2Int(512, 424);
     public ushort minDepth = 900;
     public ushort maxDepth = 1250;
-    bool mirrorDepth = true;
-    public float lowlandsThreshold = 0.33f; // Default value
-    public float plainsThreshold = 0.66f;  // Default value
+    public bool mirrorDepth = true;
 
-    public Terrain terrain;
-    // public NavMeshSurface navMeshSurface; // Reference to NavMesh Surface
-    public float terrainDepthMultiplier = 0.1f;
+    public float lowlandsThreshold = 0.33f;
+    public float plainsThreshold = 0.66f;
 
-    // Terrain layers for texture mapping
-    public TerrainLayer lowLandsLayer;
-    public TerrainLayer plainsLayer;
-    public TerrainLayer rocksLayer;
-    public bool isCalibrationRunning = true; // Continually update terrain during calibration
-    private float updateTimer = 0f;
-    private float updateInterval = 0.2f; // Update terrain every 0.2 seconds
+    public TerrainLayer lowLandsLayer, plainsLayer, rocksLayer;
 
-    private Queue<float[,]> pastHeightMaps = new Queue<float[,]>(); // Stores last few heightmaps
-    private const int heightmapBufferSize = 3; // Number of frames to average
-    private const float heightChangeThreshold = 0.005f; // Ignore changes smaller than this
+    private ushort[] rawDepthData;
+    private ushort[] previousDepthSnapshot;
 
     private float[,] heightMapCache;
-    private ushort[] previousDepthSnapshot;
-    private float textureUpdateCooldown = 2f;
-    private float lastTextureUpdateTime = 0f;
     private float[,,] splatMap;
 
+    private float textureUpdateCooldown = 2f;
+    private float lastTextureUpdateTime = 0f;
 
     private void Start()
     {
-        string dllPath = System.IO.Path.Combine(Application.dataPath, "Plugins/KinectUnityAddin.dll");
-        if (System.IO.File.Exists(dllPath))
-        {
-            Debug.Log("✅ Kinect DLL Found in Build: " + dllPath);
-        }
-        else
-        {
-            Debug.LogWarning("❌ Kinect DLL MISSING! Ensure it is in the Plugins folder.");
-        }
-
         if (terrain == null)
         {
-            Debug.LogError("❌ Terrain component not assigned.");
+            Debug.LogError("❌ Terrain not assigned.");
             return;
         }
 
         heightMapCache = new float[depthResolution.y, depthResolution.x];
-
-        //SyncTerrainColliderWithTerrain();
-
-        // 🔹 Ensure terrain layers are assigned
-        if (terrain.terrainData.terrainLayers == null || terrain.terrainData.terrainLayers.Length == 0)
-        {
-            Debug.LogWarning("⚠ No terrain layers found. Assigning default layers.");
-            terrain.terrainData.terrainLayers = new TerrainLayer[] {
-                lowLandsLayer, plainsLayer, rocksLayer
-            };
-        }
-
-        // 🔹 Adjust only required terrain properties (instead of resetting the whole TerrainData)
         terrain.terrainData.heightmapResolution = depthResolution.x;
         terrain.terrainData.size = new Vector3(depthResolution.x, 50, depthResolution.y);
 
-        // 🔹 Load saved terrain if available, otherwise start Kinect updates
-        if (PlayerPrefs.HasKey("SavedHeightmap"))
+        // Ensure layers are assigned
+        if (terrain.terrainData.terrainLayers.Length == 0)
         {
-            Debug.Log("📌 Saved heightmap found. Loading...");
-            LoadSavedTerrain();
-            isCalibrationRunning = false; // Stop Kinect updates
-        }
-        else
-        {
-            Debug.Log("📌 No saved heightmap. Starting Kinect updates.");
-            isCalibrationRunning = true;
-        }
-    }
-
-    public void EnableLiveKinectTerrain()
-    {
-        isCalibrationRunning = true; // Enable real-time Kinect updates
-        Debug.Log("🔹 Kinect depth terrain updates enabled.");
-    }
-
-    public float[,] GetDepthMap()
-    {
-        int width = depthResolution.x;
-        int height = depthResolution.y;
-        float[,] depthMap = new float[height, width];
-
-        if (rawDepthData == null || rawDepthData.Length == 0)
-        {
-            Debug.LogError("❌ GetDepthMap: No depth data available!");
-            return depthMap;
-        }
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
+            terrain.terrainData.terrainLayers = new TerrainLayer[]
             {
-                int index = y * width + x;
-                ushort depth = rawDepthData[index];
-
-                if (depth == 0)
-                {
-                    depth = GetValidDepth(x, y, rawDepthData);
-                }
-
-                // Normalize depth and store in map
-                depthMap[y, x] = Mathf.InverseLerp(minDepth, maxDepth, depth);
-            }
+                lowLandsLayer, plainsLayer, rocksLayer
+            };
         }
-
-        return depthMap;
     }
 
     public void SyncTerrainColliderWithTerrain()
@@ -140,28 +64,25 @@ public class KinectDepthTerrain : MonoBehaviour
         }
     }
 
+    public void EnableLiveKinectTerrain()
+    {
+        Debug.Log("🔹 Kinect terrain updates enabled.");
+    }
+
     public bool CheckAndUpdateTerrain()
     {
-        //if (!isCalibrationRunning) return;
-
-        if (multiSourceManager == null)
-        {
-            Debug.LogError("❌ KinectDepthTerrain: MultiSourceManager is NULL! Cannot get Kinect data.");
-            return false;
-        }
-
-        rawDepthData = multiSourceManager.GetDepthData();
+        rawDepthData = multiSourceManager?.GetDepthData();
         if (rawDepthData == null || rawDepthData.Length == 0)
         {
-            Debug.LogError("❌ Kinect depth data is NULL! Skipping terrain update.");
+            Debug.LogWarning("❌ No Kinect depth data.");
             return false;
         }
 
-        if (!DepthChanged()) return false;
-
-        Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
+        if (!DepthChanged())
+            return false;
 
         GenerateTerrainFromDepthData();
+
         if (Time.time - lastTextureUpdateTime > textureUpdateCooldown)
         {
             ApplyTexturesBasedOnHeight();
@@ -176,73 +97,28 @@ public class KinectDepthTerrain : MonoBehaviour
         return true;
     }
 
-    public IEnumerator NotifyEnemiesToRecalculatePaths()
-    {
-        Enemy[] allEnemies = FindObjectsOfType<Enemy>();
-
-        for (int i = 0; i < allEnemies.Length; i++)
-        {
-            allEnemies[i].FindNewPath();
-
-            if (i % 5 == 0)
-                yield return null;
-        }
-
-        GameManager.Instance.OnEnemyPathRecalculationComplete();
-    }
-
-
     private bool DepthChanged()
     {
-        if (previousDepthSnapshot == null || previousDepthSnapshot.Length != rawDepthData.Length)
-            return true;
+        if (previousDepthSnapshot == null) return true;
 
         int significantChanges = 0;
-        int checkEvery = 1000; // Sample every 1000 pixels
-        int maxChecks = 30;    // Total samples before giving up
-        int tolerance = 5;     // Acceptable depth variation in mm
+        int checkEvery = 1000;
+        int maxChecks = 30;
+        int tolerance = 5;
 
         for (int i = 0; i < rawDepthData.Length && significantChanges < 3 && maxChecks > 0; i += checkEvery, maxChecks--)
         {
-            int oldDepth = previousDepthSnapshot[i];
-            int newDepth = rawDepthData[i];
-
-            if (Mathf.Abs(newDepth - oldDepth) > tolerance)
-            {
+            if (Mathf.Abs(rawDepthData[i] - previousDepthSnapshot[i]) > tolerance)
                 significantChanges++;
-            }
         }
 
-        return significantChanges >= 3; // Require at least 3 noisy samples to trigger an update
-    }
-
-
-    private IEnumerator RetryKinectConnection()
-    {
-        int attempts = 0;
-        while (attempts < 5) // Try 5 times
-        {
-            yield return new WaitForSeconds(10f); // Wait before retrying
-
-            rawDepthData = multiSourceManager.GetDepthData();
-            if (rawDepthData != null && rawDepthData.Length > 0)
-            {
-                Debug.Log("✅ Kinect reconnected successfully.");
-                yield break;
-            }
-
-            attempts++;
-            Debug.LogWarning($"⚠️ Kinect reconnect attempt {attempts}/5 failed.");
-        }
-
-        Debug.LogError("❌ Kinect failed to initialize after multiple attempts.");
+        return significantChanges >= 3;
     }
 
     public void GenerateTerrainFromDepthData()
     {
         int width = depthResolution.x;
         int height = depthResolution.y;
-        float[,] heightMap = heightMapCache;
 
         for (int y = 0; y < height; y++)
         {
@@ -251,103 +127,59 @@ public class KinectDepthTerrain : MonoBehaviour
                 int index = y * width + x;
                 ushort depth = rawDepthData[index];
 
-                // If depth is 0 (missing data), get an estimated value from neighbors
                 if (depth == 0)
-                {
                     depth = GetValidDepth(x, y, rawDepthData);
-                }
 
-                // Convert depth to height (normalize & scale)
                 float normalizedDepth = Mathf.InverseLerp(minDepth, maxDepth, depth);
-                heightMap[y, x] = (1f - normalizedDepth) * terrainDepthMultiplier; // Invert depth to height mapping
+                heightMapCache[y, x] = (1f - normalizedDepth) * terrainDepthMultiplier;
             }
         }
 
-        terrain.terrainData.SetHeights(0, 0, heightMap);
-        //SyncTerrainColliderWithTerrain();
+        terrain.terrainData.SetHeights(0, 0, heightMapCache);
     }
 
-    private float[,] AverageHeightMaps(Queue<float[,]> heightMaps, int width, int height)
+    private ushort GetValidDepth(int x, int y, ushort[] data)
     {
-        float[,] result = new float[height, width];
+        int i = y * depthResolution.x + x;
+        if (data[i] != 0) return data[i];
 
-        foreach (float[,] map in heightMaps)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    result[y, x] += map[y, x];
-                }
-            }
-        }
+        if (x > 0 && data[i - 1] != 0) return data[i - 1];
+        if (y > 0 && data[i - depthResolution.x] != 0) return data[i - depthResolution.x];
 
-        int count = heightMaps.Count;
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                result[y, x] /= count;
-            }
-        }
-
-        return result;
-    }
-
-    private ushort GetValidDepth(int x, int y, ushort[] depthData)
-    {
-        int index = y * depthResolution.x + x;
-        if (depthData[index] != 0) return depthData[index];
-
-        // Try getting a valid depth from neighboring pixels
-        if (x > 0 && depthData[index - 1] != 0) return depthData[index - 1];
-        if (y > 0 && depthData[index - depthResolution.x] != 0) return depthData[index - depthResolution.x];
-
-        return minDepth; // Default fallback
+        return minDepth;
     }
 
     public void ApplyTexturesBasedOnHeight()
     {
-        if (terrain.terrainData.alphamapLayers == 0)
-        {
-            Debug.LogError("No terrain layers are assigned in the TerrainData!");
-            return;
-        }
+        int width = terrain.terrainData.alphamapWidth;
+        int height = terrain.terrainData.alphamapHeight;
+        int layers = terrain.terrainData.alphamapLayers;
 
-        int alphamapWidth = terrain.terrainData.alphamapWidth;
-        int alphamapHeight = terrain.terrainData.alphamapHeight;
-        int layerCount = terrain.terrainData.alphamapLayers;
-
-        // Only create splatMap once
         if (splatMap == null ||
-            splatMap.GetLength(0) != alphamapWidth ||
-            splatMap.GetLength(1) != alphamapHeight ||
-            splatMap.GetLength(2) != layerCount)
+            splatMap.GetLength(0) != width ||
+            splatMap.GetLength(1) != height ||
+            splatMap.GetLength(2) != layers)
         {
-            splatMap = new float[alphamapWidth, alphamapHeight, layerCount];
+            splatMap = new float[width, height, layers];
         }
 
-        for (int y = 0; y < alphamapHeight; y++)
+        for (int y = 0; y < height; y++)
         {
-            for (int x = 0; x < alphamapWidth; x++)
+            for (int x = 0; x < width; x++)
             {
-                float normX = (float)x / alphamapWidth;
-                float normY = (float)y / alphamapHeight;
+                float normX = (float)x / width;
+                float normY = (float)y / height;
 
-                float height = terrain.terrainData.GetHeight(
-                    Mathf.RoundToInt(normY * terrain.terrainData.heightmapResolution),
-                    Mathf.RoundToInt(normX * terrain.terrainData.heightmapResolution)
-                );
-
-                height /= terrain.terrainData.size.y;
+                float heightVal = terrain.terrainData.GetInterpolatedHeight(normX, normY);
+                heightVal /= terrain.terrainData.size.y;
 
                 splatMap[x, y, 0] = 0;
                 splatMap[x, y, 1] = 0;
                 splatMap[x, y, 2] = 0;
 
-                if (height < lowlandsThreshold)
+                if (heightVal < lowlandsThreshold)
                     splatMap[x, y, 0] = 1f;
-                else if (height < plainsThreshold)
+                else if (heightVal < plainsThreshold)
                     splatMap[x, y, 1] = 1f;
                 else
                     splatMap[x, y, 2] = 1f;
@@ -355,86 +187,21 @@ public class KinectDepthTerrain : MonoBehaviour
         }
 
         terrain.terrainData.SetAlphamaps(0, 0, splatMap);
-        Debug.Log("✅ Terrain textures applied successfully.");
+        Debug.Log("✅ Textures applied.");
     }
 
-
-    public void SaveTerrain()
+    public IEnumerator NotifyEnemiesToRecalculatePaths()
     {
-        HeightmapData heightmapData = new HeightmapData(terrain.terrainData.GetHeights(0, 0, depthResolution.x, depthResolution.y));
-        string heightmapJson = JsonUtility.ToJson(heightmapData);
-        PlayerPrefs.SetString("SavedHeightmap", heightmapJson);
-        PlayerPrefs.Save();
+        List<Enemy> enemies = EnemyManager.Instance.GetAllEnemies(); // ⚠️ Replace with your actual manager
 
-        isCalibrationRunning = false;
-
-        SmoothTerrain(3, 0.6f);
-        // navMeshSurface.BuildNavMesh();
-        Debug.Log("Terrain saved and NavMesh updated.");
-    }
-
-    private void LoadSavedTerrain()
-    {
-        Debug.Log("Attempting to load saved terrain...");
-        string heightmapJson = PlayerPrefs.GetString("SavedHeightmap", "");
-        if (!string.IsNullOrEmpty(heightmapJson))
+        for (int i = 0; i < enemies.Count; i++)
         {
-            HeightmapData savedHeightmap = JsonUtility.FromJson<HeightmapData>(heightmapJson);
-            terrain.terrainData.SetHeights(0, 0, savedHeightmap.To2DArray());
-            //SyncTerrainColliderWithTerrain();
-            ApplyTexturesBasedOnHeight();
-            SmoothTerrain(3, 0.6f);
-            // navMeshSurface.BuildNavMesh();
-        }
-        else
-        {
-            Debug.LogError("No saved heightmap found!");
-        }
-    }
+            enemies[i].FindNewPath();
 
-    public void DebugKinect()
-    {
-        Debug.Log("🔍 Checking Kinect connection...");
-
-        if (multiSourceManager == null)
-        {
-            Debug.LogError("❌ MultiSourceManager not assigned!");
-            return;
+            if (i % 5 == 0)
+                yield return null;
         }
 
-        if (multiSourceManager.GetDepthData() == null)
-        {
-            Debug.LogError("❌ Kinect depth data is NULL! Kinect might not be detected.");
-        }
-        else
-        {
-            Debug.Log("✅ Kinect is detected and providing depth data.");
-        }
-    }
-
-    private void SmoothTerrain(int iterations = 2, float strength = 0.5f)
-    {
-        float[,] heightmap = terrain.terrainData.GetHeights(0, 0, depthResolution.x, depthResolution.y);
-
-        for (int iter = 0; iter < iterations; iter++)
-        {
-            for (int y = 1; y < depthResolution.y - 1; y++)
-            {
-                for (int x = 1; x < depthResolution.x - 1; x++)
-                {
-                    float averageHeight = (
-                        heightmap[y - 1, x] +
-                        heightmap[y + 1, x] +
-                        heightmap[y, x - 1] +
-                        heightmap[y, x + 1]
-                    ) / 4f;
-
-                    heightmap[y, x] = Mathf.Lerp(heightmap[y, x], averageHeight, strength);
-                }
-            }
-        }
-
-        terrain.terrainData.SetHeights(0, 0, heightmap);
-        Debug.Log("Terrain smoothing applied.");
+        GameManager.Instance.OnEnemyPathRecalculationComplete();
     }
 }
