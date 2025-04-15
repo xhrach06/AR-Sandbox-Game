@@ -1,8 +1,5 @@
 using UnityEngine;
-using Unity.AI.Navigation; // Required for NavMesh
-using System.Linq;
 using System.Collections;
-using System.Collections.Generic;
 
 /// <summary>
 /// Dynamically generates and updates Unity Terrain based on Kinect depth data.
@@ -65,7 +62,6 @@ public class KinectDepthTerrain : MonoBehaviour
 
         heightMapCache = new float[depthResolution.y, depthResolution.x];
 
-        // Ensure terrain layers are assigned
         if (terrain.terrainData.terrainLayers == null || terrain.terrainData.terrainLayers.Length == 0)
         {
             Debug.LogWarning("⚠ No terrain layers found. Assigning default layers.");
