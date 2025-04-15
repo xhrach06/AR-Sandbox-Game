@@ -122,7 +122,8 @@ public class KinectDepthTerrain : MonoBehaviour
 
         for (int i = 0; i < allEnemies.Length; i++)
         {
-            allEnemies[i].FindNewPath();
+            if (allEnemies[i] != null)
+                allEnemies[i].FindNewPath();
 
             if (i % 5 == 0)
                 yield return null;
