@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Handles main menu scene transitions.
+/// </summary>
 public class MainMenuManager : MonoBehaviour
 {
     public void StartCalibration()

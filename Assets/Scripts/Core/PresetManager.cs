@@ -2,6 +2,9 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 
+/// <summary>
+/// Stores and manages preset positions for castle, towers, and enemy spawns.
+/// </summary>
 [System.Serializable]
 public class PresetData
 {
@@ -12,12 +15,14 @@ public class PresetData
 
 public class PresetManager : MonoBehaviour
 {
-    private string selectedPreset = "Preset1"; // Default preset
+    private string selectedPreset = "Preset1";
     private PresetData presetData = new PresetData();
-
     private Calibration calibration;
+
     public bool calibrationRunning = false;
-    private string GetPresetFilePath() => Path.Combine(Application.persistentDataPath, $"{selectedPreset}.json");
+
+    private string GetPresetFilePath() =>
+        Path.Combine(Application.persistentDataPath, $"{selectedPreset}.json");
 
     private void Awake()
     {
@@ -30,32 +35,34 @@ public class PresetManager : MonoBehaviour
     {
         selectedPreset = presetName;
         LoadPreset();
+
         if (calibrationRunning)
             calibration.VisualizePreset();
+
         Debug.Log($"🔹 Selected preset: {selectedPreset}");
     }
 
     public void SavePreset()
     {
-        string filePath = GetPresetFilePath();
         string json = JsonUtility.ToJson(presetData, true);
-        File.WriteAllText(filePath, json);
-        Debug.Log($"✅ Preset '{selectedPreset}' saved to: {filePath}");
+        File.WriteAllText(GetPresetFilePath(), json);
+        Debug.Log($"✅ Preset '{selectedPreset}' saved.");
     }
 
     public void LoadPreset()
     {
-        string filePath = GetPresetFilePath();
-        if (File.Exists(filePath))
+        string path = GetPresetFilePath();
+
+        if (File.Exists(path))
         {
-            string json = File.ReadAllText(filePath);
+            string json = File.ReadAllText(path);
             presetData = JsonUtility.FromJson<PresetData>(json);
             Debug.Log($"📌 Preset '{selectedPreset}' loaded.");
         }
         else
         {
             presetData = new PresetData();
-            Debug.LogWarning($"⚠ Preset '{selectedPreset}' not found. Creating new preset.");
+            Debug.LogWarning($"⚠ Preset '{selectedPreset}' not found. Created new.");
         }
     }
 
@@ -77,7 +84,7 @@ public class PresetManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("⚠ No castle data found. Nothing to delete.");
+            Debug.Log("⚠ No castle data to delete.");
         }
     }
 
@@ -89,22 +96,18 @@ public class PresetManager : MonoBehaviour
     public void AddCastle(Vector3 position)
     {
         if (presetData.castlePositions.Count > 0)
-        {
             presetData.castlePositions[0] = position;
-        }
         else
-        {
             presetData.castlePositions.Add(position);
-        }
+
         SavePreset();
     }
 
     public void AddTower(Vector3 position, int maxTowers = 3)
     {
         if (presetData.towerPositions.Count >= maxTowers)
-        {
             presetData.towerPositions.RemoveAt(0);
-        }
+
         presetData.towerPositions.Add(position);
         SavePreset();
     }
@@ -112,9 +115,8 @@ public class PresetManager : MonoBehaviour
     public void AddEnemySpawn(Vector3 position, int maxEnemySpawns = 3)
     {
         if (presetData.enemySpawnPositions.Count >= maxEnemySpawns)
-        {
             presetData.enemySpawnPositions.RemoveAt(0);
-        }
+
         presetData.enemySpawnPositions.Add(position);
         SavePreset();
     }

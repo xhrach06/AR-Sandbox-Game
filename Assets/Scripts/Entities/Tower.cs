@@ -1,80 +1,58 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+
 public class Tower : MonoBehaviour
 {
+    [Header("Attack Settings")]
     public GameObject projectilePrefab;
     public float attackRange = 15f;
     public float attackCooldown = 2f;
     public float attackDamage = 20f;
+    public float hitChance = 0.85f;
     public Transform firePoint;
 
-    [Range(0f, 1f)]
-    public float hitChance = 0.85f; // 💥 Chance to actually hit the target
-
-    private float lastAttackTime;
-    private readonly List<Transform> enemiesInRange = new List<Transform>();
-    private Health health;
+    [Header("Health")]
     public GameObject healthBarPrefab;
 
+    private float lastAttackTime;
+    private Health health;
+    private readonly List<Transform> enemiesInRange = new();
 
-    void Awake()
+    private void Awake()
     {
         if (SceneManager.GetActiveScene().name == "CalibrationScene")
         {
-            this.enabled = false; // ⛔ disable this script entirely
+            enabled = false;
             return;
         }
     }
 
-    void Start()
+    private void Start()
     {
         health = GetComponent<Health>();
-        if (health == null)
-        {
-            //Debug.LogError("❌ Health component is missing on " + gameObject.name);
-            return;
-        }
+        if (health == null) return;
 
         GameObject canvas = GameObject.Find("HealthBarCanvas");
-        if (canvas == null)
-        {
-            //Debug.LogError("❌ HealthBarCanvas not found in the scene!");
-            return;
-        }
+        if (canvas == null) return;
 
         GameObject bar = Instantiate(healthBarPrefab, canvas.transform);
 
         FollowWorldTarget follow = bar.GetComponent<FollowWorldTarget>();
-        if (follow != null)
-        {
-            follow.SetTarget(transform);
-        }
-        else
-        {
-            //Debug.LogWarning("⚠️ No FollowWorldTarget found on HealthBar prefab!");
-        }
+        follow?.SetTarget(transform);
 
         HealthBar healthBar = bar.GetComponent<HealthBar>();
-        if (healthBar != null)
-        {
-            healthBar.SetHealth(health);
-        }
-        else
-        {
-            //Debug.LogWarning("⚠️ No HealthBar script found on HealthBar prefab!");
-        }
-        health.SetLinkedHealthBar(bar);
+        healthBar?.SetHealth(health);
 
-        //Debug.Log("💡 Spawned health bar for " + gameObject.name);
+        health.SetLinkedHealthBar(bar);
     }
 
-    void Update()
+    private void Update()
     {
         enemiesInRange.RemoveAll(enemy => enemy == null);
 
-        float shootTime = Random.Range(attackCooldown - attackCooldown / 2, attackCooldown + attackCooldown / 2);
-        if (Time.time - lastAttackTime > shootTime && enemiesInRange.Count > 0)
+        float shootDelay = Random.Range(attackCooldown * 0.5f, attackCooldown * 1.5f);
+        if (Time.time - lastAttackTime > shootDelay && enemiesInRange.Count > 0)
         {
             Transform target = SelectTarget();
             Shoot(target);
@@ -82,19 +60,13 @@ public class Tower : MonoBehaviour
         }
     }
 
-    void Shoot(Transform target)
+    private void Shoot(Transform target)
     {
-        if (projectilePrefab == null || firePoint == null)
-        {
-            //Debug.LogError("Projectile prefab or firePoint is missing!");
-            return;
-        }
+        if (projectilePrefab == null || firePoint == null) return;
 
         bool didHit = Random.value <= hitChance;
-
         Vector3 direction = (target.position - firePoint.position).normalized;
 
-        // If it missed, apply a small offset
         if (!didHit)
         {
             direction += new Vector3(
@@ -102,57 +74,41 @@ public class Tower : MonoBehaviour
                 Random.Range(-0.3f, 0.3f),
                 Random.Range(-0.3f, 0.3f)
             );
-
-            direction.Normalize(); // Make sure the direction stays valid
-            //Debug.Log("🎯 MISS! Tower fired but missed the enemy.");
+            direction.Normalize();
         }
 
         GameObject projectile = Instantiate(projectilePrefab, firePoint.position, Quaternion.LookRotation(direction));
         Projectile projScript = projectile.GetComponent<Projectile>();
+
         if (projScript != null)
         {
             if (didHit)
-            {
                 projScript.SetTarget(target, attackDamage);
-            }
             else
-            {
-                projScript.SetMissDirection(direction); // You’ll need this method in your Projectile script
-            }
+                projScript.SetMissDirection(direction);
         }
     }
 
-    Transform SelectTarget()
+    private Transform SelectTarget()
     {
         int index = Random.Range(0, enemiesInRange.Count);
         return enemiesInRange[index] != null ? enemiesInRange[index] : enemiesInRange[0];
     }
 
-    void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Enemy"))
-        {
             enemiesInRange.Add(other.transform);
-        }
     }
 
-    void OnTriggerExit(Collider other)
+    private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Enemy"))
-        {
             enemiesInRange.Remove(other.transform);
-        }
     }
 
     public void TakeDamage(float damage)
     {
-        if (health != null)
-        {
-            health.TakeDamage(damage);
-        }
-        else
-        {
-            //Debug.LogError("Health component is missing on Tower: " + gameObject.name);
-        }
+        health?.TakeDamage(damage);
     }
 }

@@ -1,40 +1,46 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
+/// <summary>
+/// Controls the overall game flow, including terrain updates, enemy spawning, and end game handling.
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+
+    [Header("Managers & Components")]
     public CastleManager castleManager;
     public TowerManager towerManager;
     public EnemyManager enemyManager;
-    public SpellManager spellManager;
+    public KinectDepthTerrain kinectDepthTerrain;
+    public GridManager gridManager;
     public Terrain terrain;
     public Canvas healthBarCanvas;
-    public TerrainPainter terrainPainter;
-    public KinectDepthTerrain kinectDepthTerrain; // ✅ Added Kinect terrain reference
-    public GridManager gridManager;
-    private Coroutine pathRecalcRoutine;
 
+    [Header("Gameplay Settings")]
     public int numberOfTowers = 3;
     public float gameDuration = 120f;
+    public float terrainUpdateInterval = 1f;
 
-    public float timer;
+    private Coroutine pathRecalcRoutine;
+    private float timer;
     private bool gameRunning = false;
     private PresetManager presetManager;
 
-    public float terrainUpdateInterval = 1f; // ✅ Update interval for live terrain and paths
-    void Awake()
+    // -------------------- Unity Methods --------------------
+
+    private void Awake()
     {
         Instance = this;
     }
 
-    void Start()
+    private void Start()
     {
         terrain = FindObjectOfType<Terrain>();
         gridManager = FindObjectOfType<GridManager>();
         kinectDepthTerrain = FindObjectOfType<KinectDepthTerrain>();
-        spellManager = FindObjectOfType<SpellManager>();
+        presetManager = FindObjectOfType<PresetManager>();
 
         if (terrain == null || kinectDepthTerrain == null)
         {
@@ -43,18 +49,13 @@ public class GameManager : MonoBehaviour
         }
 
         timer = gameDuration;
-        presetManager = FindObjectOfType<PresetManager>();
 
-        // ✅ ENABLE LIVE KINECT TERRAIN UPDATES
-        kinectDepthTerrain.EnableLiveKinectTerrain();
-
-        // ✅ Start periodic updates of terrain & paths
-        StartCoroutine(UpdateLiveTerrain());
-
-        StartCoroutine(DelayedGameInitialization());
+        kinectDepthTerrain.EnableLiveKinectTerrain(); // Start Kinect updates
+        StartCoroutine(UpdateLiveTerrain());          // Begin terrain + path recalculation loop
+        StartCoroutine(DelayedGameInitialization());  // Wait for terrain, then init gameplay
     }
 
-    void Update()
+    private void Update()
     {
         if (!gameRunning) return;
 
@@ -71,6 +72,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void OnDrawGizmos()
+    {
+        if (Camera.main != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(Camera.main.transform.position, -Camera.main.transform.up * 10f);
+        }
+    }
+
+    // -------------------- Game Initialization --------------------
+
     private IEnumerator DelayedGameInitialization()
     {
         Debug.Log("⏳ Waiting for terrain to fully load...");
@@ -79,6 +91,8 @@ public class GameManager : MonoBehaviour
         Debug.Log("🏰 Placing castle and towers...");
         castleManager.PlaceCastle();
         towerManager.PlaceTowers();
+
+        // Pass tower positions as obstacles to grid
         List<Vector3> towerPositions = towerManager.GetTowerPositions();
         gridManager.SetObstaclePositions(towerPositions);
 
@@ -114,10 +128,7 @@ public class GameManager : MonoBehaviour
         gameRunning = true;
     }
 
-    public void OnEnemyPathRecalculationComplete()
-    {
-        pathRecalcRoutine = null;
-    }
+    // -------------------- Terrain Updates --------------------
 
     private IEnumerator UpdateLiveTerrain()
     {
@@ -125,57 +136,45 @@ public class GameManager : MonoBehaviour
         {
             yield return new WaitForSeconds(terrainUpdateInterval);
 
-            if (kinectDepthTerrain != null)
+            if (kinectDepthTerrain == null) continue;
+
+            Debug.Log("🔄 Updating live terrain from Kinect...");
+            if (kinectDepthTerrain.CheckAndUpdateTerrain())
             {
-                Debug.Log("🔄 Updating live terrain from Kinect...");
-                if (kinectDepthTerrain.CheckAndUpdateTerrain())
+                if (gridManager != null)
                 {
-                    if (gridManager != null)
-                    {
-                        Debug.Log("🔄 Re-generating pathfinding grid...");
-                        gridManager.GenerateGrid();
-                    }
-                    // ✅ Only start this coroutine if one isn't already running
-                    if (pathRecalcRoutine == null)
-                    {
-                        pathRecalcRoutine = StartCoroutine(kinectDepthTerrain.NotifyEnemiesToRecalculatePaths());
-                    }
+                    Debug.Log("🔄 Re-generating pathfinding grid...");
+                    gridManager.GenerateGrid();
+                }
+
+                // Only run one instance of enemy path recalculation
+                if (pathRecalcRoutine == null)
+                {
+                    pathRecalcRoutine = StartCoroutine(kinectDepthTerrain.NotifyEnemiesToRecalculatePaths());
                 }
             }
         }
     }
 
+    public void OnEnemyPathRecalculationComplete()
+    {
+        pathRecalcRoutine = null;
+    }
+
+    // -------------------- Game Ending --------------------
+
     public void EndGame(string message)
     {
         gameRunning = false;
         Debug.Log(message);
+
         HudManager hudManager = FindObjectOfType<HudManager>();
-        hudManager.SetGameOverText(message);
-        if (terrainPainter != null)
+        if (hudManager != null)
         {
-            Debug.Log("Reverting terrain at the end of the game.");
-            terrainPainter.RevertTerrain();
+            hudManager.SetGameOverText(message);
         }
 
         enemyManager.StopSpawning();
         Time.timeScale = 0;
     }
-
-    void OnApplicationQuit()
-    {
-        if (terrainPainter != null)
-        {
-            Debug.Log("Reverting terrain on application quit.");
-            terrainPainter.RevertTerrain();
-        }
-    }
-    void OnDrawGizmos()
-    {
-        if (Camera.main != null)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawRay(Camera.main.transform.position, -Camera.main.transform.up * 10f);
-        }
-    }
-
 }

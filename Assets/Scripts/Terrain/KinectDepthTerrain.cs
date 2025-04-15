@@ -3,31 +3,43 @@ using Unity.AI.Navigation;
 using System.Collections;
 using System.Collections.Generic;
 
+/// <summary>
+/// Generates and updates terrain based on Kinect depth input,
+/// including heightmap and texture blending.
+/// </summary>
 public class KinectDepthTerrain : MonoBehaviour
 {
     [SerializeField] public MultiSourceManager multiSourceManager;
+
+    [Header("References")]
     public Terrain terrain;
+
+    [Header("Depth Configuration")]
     public float terrainDepthMultiplier = 0.1f;
     public Vector2 terrainRotation;
     public readonly Vector2Int depthResolution = new Vector2Int(512, 424);
     public ushort minDepth = 900;
     public ushort maxDepth = 1250;
-    public bool mirrorDepth = true;
 
+
+    [Header("Texture Thresholds")]
     public float lowlandsThreshold = 0.33f;
     public float plainsThreshold = 0.66f;
 
+    [Header("Terrain Layers")]
     public TerrainLayer lowLandsLayer, plainsLayer, rocksLayer;
 
     private ushort[] rawDepthData;
     private ushort[] previousDepthSnapshot;
-
     private float[,] heightMapCache;
     private float[,,] splatMap;
 
     private float textureUpdateCooldown = 2f;
     private float lastTextureUpdateTime = 0f;
 
+    /// <summary>
+    /// Initializes the terrain and heightmap configuration.
+    /// </summary>
     private void Start()
     {
         if (terrain == null)
@@ -40,7 +52,7 @@ public class KinectDepthTerrain : MonoBehaviour
         terrain.terrainData.heightmapResolution = depthResolution.x;
         terrain.terrainData.size = new Vector3(depthResolution.x, 50, depthResolution.y);
 
-        // Ensure layers are assigned
+        // Ensure terrain layers are present
         if (terrain.terrainData.terrainLayers.Length == 0)
         {
             terrain.terrainData.terrainLayers = new TerrainLayer[]
@@ -50,6 +62,9 @@ public class KinectDepthTerrain : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Syncs the TerrainCollider with the current TerrainData.
+    /// </summary>
     public void SyncTerrainColliderWithTerrain()
     {
         TerrainCollider terrainCollider = terrain.GetComponent<TerrainCollider>();
@@ -64,11 +79,18 @@ public class KinectDepthTerrain : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Enables Kinect-driven terrain updates.
+    /// </summary>
     public void EnableLiveKinectTerrain()
     {
         Debug.Log("🔹 Kinect terrain updates enabled.");
     }
 
+    /// <summary>
+    /// Checks if terrain needs updating and applies new heights and textures if so.
+    /// </summary>
+    /// <returns>True if terrain was updated, false otherwise.</returns>
     public bool CheckAndUpdateTerrain()
     {
         rawDepthData = multiSourceManager?.GetDepthData();
@@ -93,10 +115,13 @@ public class KinectDepthTerrain : MonoBehaviour
             previousDepthSnapshot = new ushort[rawDepthData.Length];
 
         System.Array.Copy(rawDepthData, previousDepthSnapshot, rawDepthData.Length);
-
         return true;
     }
 
+    /// <summary>
+    /// Detects significant changes in depth data since the last frame.
+    /// </summary>
+    /// <returns>True if the terrain should be updated.</returns>
     private bool DepthChanged()
     {
         if (previousDepthSnapshot == null) return true;
@@ -115,6 +140,9 @@ public class KinectDepthTerrain : MonoBehaviour
         return significantChanges >= 3;
     }
 
+    /// <summary>
+    /// Converts the depth data into a Unity terrain heightmap.
+    /// </summary>
     public void GenerateTerrainFromDepthData()
     {
         int width = depthResolution.x;
@@ -138,6 +166,9 @@ public class KinectDepthTerrain : MonoBehaviour
         terrain.terrainData.SetHeights(0, 0, heightMapCache);
     }
 
+    /// <summary>
+    /// Tries to get a non-zero depth value from neighbors if the current is invalid.
+    /// </summary>
     private ushort GetValidDepth(int x, int y, ushort[] data)
     {
         int i = y * depthResolution.x + x;
@@ -149,6 +180,9 @@ public class KinectDepthTerrain : MonoBehaviour
         return minDepth;
     }
 
+    /// <summary>
+    /// Updates terrain textures based on elevation using thresholds.
+    /// </summary>
     public void ApplyTexturesBasedOnHeight()
     {
         int width = terrain.terrainData.alphamapWidth;
@@ -190,9 +224,12 @@ public class KinectDepthTerrain : MonoBehaviour
         Debug.Log("✅ Textures applied.");
     }
 
+    /// <summary>
+    /// Notifies all enemies to recalculate their paths after a terrain change.
+    /// </summary>
     public IEnumerator NotifyEnemiesToRecalculatePaths()
     {
-        List<Enemy> enemies = EnemyManager.Instance.GetAllEnemies(); // ⚠️ Replace with your actual manager
+        List<Enemy> enemies = EnemyManager.Instance.GetAllEnemies();
 
         for (int i = 0; i < enemies.Count; i++)
         {

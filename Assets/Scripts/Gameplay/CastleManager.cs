@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Responsible for placing the castle and notifying GameManager when it's destroyed.
+/// </summary>
 public class CastleManager : MonoBehaviour
 {
     public GameObject castlePrefab;
@@ -12,9 +15,7 @@ public class CastleManager : MonoBehaviour
     void Start()
     {
         if (enemyManager == null)
-        {
             enemyManager = FindObjectOfType<EnemyManager>();
-        }
     }
 
     public void PlaceCastle()
@@ -22,18 +23,17 @@ public class CastleManager : MonoBehaviour
         PresetManager presetManager = FindObjectOfType<PresetManager>();
         List<Vector3> positions = presetManager.GetCastlePositions();
 
-        if (positions.Count > 0)
-        {
-            float terrainHeight = Terrain.activeTerrain.SampleHeight(positions[0]);
-            Vector3 adjustedPosition = new Vector3(positions[0].x, terrainHeight + 2f, positions[0].z);
-
-            placedCastle = Instantiate(castlePrefab, adjustedPosition, Quaternion.identity);
-            Debug.Log($"🏰 Castle placed at: {adjustedPosition}");
-        }
-        else
+        if (positions.Count == 0)
         {
             Debug.LogError("❌ CastleManager: No valid castle position found in preset!");
+            return;
         }
+
+        float terrainHeight = Terrain.activeTerrain.SampleHeight(positions[0]);
+        Vector3 adjustedPosition = new Vector3(positions[0].x, terrainHeight + 2f, positions[0].z);
+
+        placedCastle = Instantiate(castlePrefab, adjustedPosition, Quaternion.identity);
+        Debug.Log($"🏰 Castle placed at: {adjustedPosition}");
     }
 
     public void HandleCastleDestroyed()
@@ -41,7 +41,6 @@ public class CastleManager : MonoBehaviour
         GameManager gameManager = FindObjectOfType<GameManager>();
         gameManager.EndGame("Game Over! The castle was destroyed.");
     }
-
 
     public Transform GetCastleTransform()
     {

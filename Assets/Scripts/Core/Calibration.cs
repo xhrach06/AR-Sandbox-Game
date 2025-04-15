@@ -1,73 +1,64 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 
+/// <summary>
+/// Calibration scene logic for visualizing Kinect terrain and placing castle/towers/enemy spawns.
+/// </summary>
 public class Calibration : MonoBehaviour
 {
-    private Camera KinectTerrainCamera;
+    [Header("References")]
     [SerializeField] private KinectDepthTerrain kinectDepthTerrain;
     [SerializeField] private GameObject castlePrefab;
     [SerializeField] private GameObject towerPrefab;
     [SerializeField] private GameObject enemySpawnPrefab;
 
-    private List<GameObject> spawnedEntities = new List<GameObject>();
+    private Camera KinectTerrainCamera;
+    private PresetManager presetManager;
 
-    private List<Vector3> castlePositions = new List<Vector3>();
-    private List<Vector3> towerPositions = new List<Vector3>();
-    private List<Vector3> enemyPositions = new List<Vector3>();
-
-    private string selectedPreset = "Preset1"; // Default preset
-
+    [Header("Movement Settings")]
     public float moveSpeed = 10f;
     public float verticalMoveSpeed = 5f;
 
-    private PresetManager presetManager;
+    [Header("Terrain Update")]
     private float terrainUpdateTimer = 0f;
     private const float terrainUpdateInterval = 0.5f;
 
+    private List<GameObject> spawnedEntities = new List<GameObject>();
 
     private void Start()
     {
         KinectTerrainCamera = Camera.main;
+
         presetManager = FindObjectOfType<PresetManager>();
         if (presetManager == null)
         {
-            presetManager.calibrationRunning = true;
             Debug.LogError("❌ No PresetManager found in the scene!");
             return;
         }
-        // 🔹 Enable Kinect and dynamically generate terrain during calibration
+
+        presetManager.calibrationRunning = true;
+
+        // Enable Kinect and terrain updates
         kinectDepthTerrain.enabled = true;
         kinectDepthTerrain.EnableLiveKinectTerrain();
         kinectDepthTerrain.SyncTerrainColliderWithTerrain();
 
         Debug.Log("📌 Calibration mode: Kinect terrain generation is active.");
-
-        //kinectDepthTerrain.DebugKinect();
         StartCoroutine(DelayedVisualization());
-
-        Debug.Log("🔹 Select preset, adjust camera, place entities, then save.");
     }
 
     private void Update()
     {
         HandleCameraMovement();
 
-        if (Input.GetKeyDown(KeyCode.C)) // C for Castle
-        {
-            RegisterPosition("castle");
-        }
-        if (Input.GetKeyDown(KeyCode.T)) // T for Tower
-        {
-            RegisterPosition("tower");
-        }
-        if (Input.GetKeyDown(KeyCode.E)) // E for Enemy Spawn
-        {
-            RegisterPosition("enemy");
-        }
+        // Key press handlers
+        if (Input.GetKeyDown(KeyCode.C)) RegisterPosition("castle");
+        if (Input.GetKeyDown(KeyCode.T)) RegisterPosition("tower");
+        if (Input.GetKeyDown(KeyCode.E)) RegisterPosition("enemy");
 
-        // 🔄 Update terrain every 0.5 seconds during calibration
+        // Periodic terrain updates
         terrainUpdateTimer += Time.deltaTime;
         if (terrainUpdateTimer >= terrainUpdateInterval)
         {
@@ -75,49 +66,49 @@ public class Calibration : MonoBehaviour
                 terrainUpdateTimer = 0f;
         }
     }
+
     private IEnumerator DelayedVisualization()
     {
-        yield return new WaitForSeconds(0.5f); // Allow terrain height to update
+        yield return new WaitForSeconds(0.5f);
         presetManager.LoadPreset();
         VisualizePreset();
     }
 
-
+    /// <summary>
+    /// Loads and instantiates entities from the preset onto the terrain.
+    /// </summary>
     public void VisualizePreset()
     {
-        ClearVisualization(); // Remove old visual objects
+        ClearVisualization();
 
-        // 🔹 Spawn castle
         foreach (Vector3 position in presetManager.GetCastlePositions())
         {
-            float terrainHeight = Terrain.activeTerrain.SampleHeight(position);
-            Vector3 adjustedPosition = new Vector3(position.x, terrainHeight + 2f, position.z);
-
+            Vector3 adjustedPosition = GetHeightAdjustedPosition(position, 2f);
             GameObject castle = Instantiate(castlePrefab, adjustedPosition, Quaternion.identity);
             spawnedEntities.Add(castle);
         }
 
-        // 🔹 Spawn towers
         foreach (Vector3 position in presetManager.GetTowerPositions())
         {
-            float terrainHeight = Terrain.activeTerrain.SampleHeight(position);
-            Vector3 adjustedPosition = new Vector3(position.x, terrainHeight + 1f, position.z);
-
+            Vector3 adjustedPosition = GetHeightAdjustedPosition(position, 1f);
             GameObject tower = Instantiate(towerPrefab, adjustedPosition, Quaternion.identity);
             spawnedEntities.Add(tower);
         }
 
-        // 🔹 Spawn enemy spawn points (Spheres)
         foreach (Vector3 position in presetManager.GetEnemySpawnPositions())
         {
-            float terrainHeight = Terrain.activeTerrain.SampleHeight(position);
-            Vector3 adjustedPosition = new Vector3(position.x, terrainHeight + 1f, position.z);
-
+            Vector3 adjustedPosition = GetHeightAdjustedPosition(position, 1f);
             GameObject enemySpawn = Instantiate(enemySpawnPrefab, adjustedPosition, Quaternion.identity);
             spawnedEntities.Add(enemySpawn);
         }
 
         Debug.Log("✅ Preset visualized with terrain height adjustment.");
+    }
+
+    private Vector3 GetHeightAdjustedPosition(Vector3 position, float yOffset)
+    {
+        float terrainHeight = Terrain.activeTerrain.SampleHeight(position);
+        return new Vector3(position.x, terrainHeight + yOffset, position.z);
     }
 
     private void ClearVisualization()
@@ -129,19 +120,23 @@ public class Calibration : MonoBehaviour
         spawnedEntities.Clear();
     }
 
-
+    /// <summary>
+    /// Registers a new position into the preset file via mouse raycast.
+    /// </summary>
     private void RegisterPosition(string type)
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
             Vector3 position = hit.point;
-            //Debug.Log($"{type} registered at: {position}");
 
-            // 🔹 Save based on type
-            if (type == "castle") presetManager.AddCastle(position);
-            if (type == "tower") presetManager.AddTower(position);
-            if (type == "enemy") presetManager.AddEnemySpawn(position);
+            switch (type)
+            {
+                case "castle": presetManager.AddCastle(position); break;
+                case "tower": presetManager.AddTower(position); break;
+                case "enemy": presetManager.AddEnemySpawn(position); break;
+            }
+
             VisualizePreset();
         }
         else
@@ -154,16 +149,17 @@ public class Calibration : MonoBehaviour
     {
         presetManager.SavePreset();
         PlayerPrefs.SetString("SelectedPreset", presetManager.GetSelectedPreset());
-        PlayerPrefs.Save();
 
+        // Save camera position
         PlayerPrefs.SetFloat("CameraPositionX", KinectTerrainCamera.transform.position.x);
         PlayerPrefs.SetFloat("CameraPositionY", KinectTerrainCamera.transform.position.y);
         PlayerPrefs.SetFloat("CameraPositionZ", KinectTerrainCamera.transform.position.z);
 
+        // Save terrain rotation
         PlayerPrefs.SetFloat("xRotation", kinectDepthTerrain.terrainRotation.x);
         PlayerPrefs.SetFloat("yRotation", kinectDepthTerrain.terrainRotation.y);
 
-        // 🔹 Save terrain heightmap for gameplay use
+        // Save terrain height data
         SaveTerrainHeightmap();
 
         PlayerPrefs.Save();
@@ -175,13 +171,10 @@ public class Calibration : MonoBehaviour
     {
         TerrainData terrainData = kinectDepthTerrain.terrain.terrainData;
         float[,] heightmap = terrainData.GetHeights(0, 0, terrainData.heightmapResolution, terrainData.heightmapResolution);
-        //kinectDepthTerrain.isCalibrationRunning = false;
-
         string heightmapJson = JsonUtility.ToJson(new HeightmapData(heightmap));
         PlayerPrefs.SetString("SavedHeightmap", heightmapJson);
 
-        // 🔹 Stop Kinect updates AFTER saving terrain
-        //kinectDepthTerrain.SaveTerrain();
+        // Disable terrain updates once saved
         kinectDepthTerrain.enabled = false;
     }
 

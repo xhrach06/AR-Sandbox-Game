@@ -1,21 +1,32 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// Manages the grid used for pathfinding based on terrain height and obstacles.
+/// </summary>
 public class GridManager : MonoBehaviour
 {
-    public Vector2Int gridSize = new Vector2Int(64, 53); // Adjusted size
-    public float nodeSize = 8f;                          // Adjusted node resolution
+    [Header("Grid Settings")]
+    public Vector2Int gridSize = new Vector2Int(64, 53); // Grid dimensions (width, height)
+    public float nodeSize = 8f;                          // World size of each node
+
+    [Header("References")]
     public Terrain terrain;
+
+    // The 2D grid storing node data
     public Node[,] grid;
 
-    // Reference to tower positions (assigned after placement)
-    private HashSet<Vector2Int> occupiedNodes = new HashSet<Vector2Int>();
+    // Grid positions occupied by towers (used for marking non-walkable nodes)
+    private HashSet<Vector2Int> occupiedNodes = new();
 
     void Start()
     {
         GenerateGrid();
     }
 
+    /// <summary>
+    /// Marks grid cells as occupied (e.g., by towers) to make them unwalkable.
+    /// </summary>
     public void SetObstaclePositions(List<Vector3> worldPositions)
     {
         occupiedNodes.Clear();
@@ -27,11 +38,13 @@ public class GridManager : MonoBehaviour
                 Mathf.FloorToInt(pos.z / nodeSize)
             );
 
-            if (!occupiedNodes.Contains(gridPos))
-                occupiedNodes.Add(gridPos);
+            occupiedNodes.Add(gridPos);
         }
     }
 
+    /// <summary>
+    /// Generates the grid and calculates walkability based on terrain and tower positions.
+    /// </summary>
     public void GenerateGrid()
     {
         grid = new Node[gridSize.x, gridSize.y];
@@ -43,8 +56,8 @@ public class GridManager : MonoBehaviour
                 Vector3 worldPoint = new Vector3(x * nodeSize, 0, y * nodeSize);
                 worldPoint.y = terrain.SampleHeight(worldPoint);
 
-                Vector2Int currentGridPos = new Vector2Int(x, y);
-                bool walkable = !occupiedNodes.Contains(currentGridPos);
+                Vector2Int gridPos = new Vector2Int(x, y);
+                bool walkable = !occupiedNodes.Contains(gridPos);
 
                 float heightCost = Mathf.Abs(worldPoint.y - terrain.SampleHeight(worldPoint));
 
@@ -53,6 +66,9 @@ public class GridManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Returns the node corresponding to a world position.
+    /// </summary>
     public Node GetNodeFromWorldPosition(Vector3 worldPosition)
     {
         int x = Mathf.FloorToInt(worldPosition.x / nodeSize);
@@ -64,6 +80,9 @@ public class GridManager : MonoBehaviour
         return grid[x, y];
     }
 
+    /// <summary>
+    /// Visualizes the grid in the scene view using Gizmos.
+    /// </summary>
     void OnDrawGizmos()
     {
         if (grid == null) return;

@@ -1,33 +1,10 @@
 using UnityEngine;
 using System.Collections.Generic;
-public class SimplePriorityQueue<T> where T : System.IComparable<T>
-{
-    private readonly List<T> items = new List<T>();
-
-    public int Count => items.Count;
-
-    public void Enqueue(T item)
-    {
-        items.Add(item);
-        items.Sort();
-    }
-
-    public T Dequeue()
-    {
-        T first = items[items.Count - 1];
-        items.RemoveAt(items.Count - 1);
-        return first;
-    }
-
-    public void UpdateItem(T item)
-    {
-        items.Sort();
-    }
-
-    public bool Contains(T item) => items.Contains(item);
-}
 
 
+/// <summary>
+/// Represents a single cell (node) in the pathfinding grid.
+/// </summary>
 public class Node : System.IComparable<Node>
 {
     public Vector3 worldPosition;
@@ -52,11 +29,14 @@ public class Node : System.IComparable<Node>
         gridY = y;
     }
 
+    /// <summary>
+    /// Used by the priority queue to sort nodes by fCost and hCost.
+    /// </summary>
     public int CompareTo(Node other)
     {
         int compare = fCost.CompareTo(other.fCost);
         if (compare == 0)
             compare = hCost.CompareTo(other.hCost);
-        return -compare; // lower fCost first
+        return -compare; // Reverse sort: lower fCost has higher priority
     }
 }

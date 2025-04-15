@@ -1,38 +1,39 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+using UnityEngine;
 
+/// <summary>
+/// Manages enemy spawning, tracking, and death handling.
+/// </summary>
 public class EnemyManager : MonoBehaviour
 {
     public static EnemyManager Instance { get; private set; }
+
     public GameObject enemyPrefab;
     public Transform castle;
     public float spawnInterval = 2f;
 
-    private List<Vector3> spawnPoints = new List<Vector3>();
-    private bool spawningEnemies = false;
     public GridManager grid;
     public Pathfinding pathfinding;
-    private List<Enemy> activeEnemies = new List<Enemy>();
+
+    private List<Vector3> spawnPoints = new();
+    private List<Enemy> activeEnemies = new();
+    private bool spawningEnemies = false;
     private int enemiesDefeated = 0;
 
     void Awake()
     {
         Instance = this;
     }
+
     void Start()
     {
-        //grid = FindObjectOfType<GridManager>();
-        //pathfinding = FindObjectOfType<Pathfinding>();
         if (grid == null)
-        {
-            Debug.LogError("❌ EnemyManager: GridManager is missing! Pathfinding won't work.");
-        }
+            Debug.LogError("❌ EnemyManager: GridManager is missing!");
+
         if (pathfinding == null)
-        {
-            Debug.LogError("❌ EnemyManager: PathFinding is missing! Pathfinding won't work.");
-        }
+            Debug.LogError("❌ EnemyManager: Pathfinding is missing!");
+
         HudManager hud = FindObjectOfType<HudManager>();
         if (hud != null)
         {
@@ -48,19 +49,17 @@ public class EnemyManager : MonoBehaviour
 
         if (spawnPoints.Count == 0)
         {
-            Debug.LogError("EnemyManager: No valid enemy spawn points found in preset!");
+            Debug.LogError("❌ EnemyManager: No valid enemy spawn points found in preset!");
             return;
         }
 
-        List<Vector3> validSpawnPoints = new List<Vector3>();
+        List<Vector3> validSpawnPoints = new();
 
         foreach (Vector3 spawnPoint in spawnPoints)
         {
-            // Adjust height to match terrain
             float y = Terrain.activeTerrain.SampleHeight(spawnPoint) + 1f;
-            Vector3 adjustedSpawn = new Vector3(spawnPoint.x, y, spawnPoint.z);
+            Vector3 adjustedSpawn = new(spawnPoint.x, y, spawnPoint.z);
 
-            // Ensure the spawn point is within the grid bounds
             Node node = grid.GetNodeFromWorldPosition(adjustedSpawn);
             if (node != null && node.walkable)
             {
@@ -73,7 +72,6 @@ public class EnemyManager : MonoBehaviour
             }
         }
 
-        // Replace old spawn points with valid ones
         spawnPoints = validSpawnPoints;
     }
 
@@ -81,7 +79,7 @@ public class EnemyManager : MonoBehaviour
     {
         if (spawnPoints.Count == 0)
         {
-            Debug.LogError("EnemyManager: Cannot start spawning. No spawn points available.");
+            Debug.LogError("❌ EnemyManager: Cannot spawn enemies. No spawn points available.");
             return;
         }
 
@@ -95,7 +93,6 @@ public class EnemyManager : MonoBehaviour
         {
             Vector3 spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
 
-            // Ensure spawn point is valid
             Node node = grid.GetNodeFromWorldPosition(spawnPoint);
             if (node == null || !node.walkable)
             {
@@ -111,8 +108,10 @@ public class EnemyManager : MonoBehaviour
             {
                 enemyScript.SetTarget(castle);
                 activeEnemies.Add(enemyScript);
-                FindObjectOfType<HudManager>()?.SetKillCounter(activeEnemies.Count);
                 enemyScript.OnEnemyDeath += HandleEnemyDeath;
+
+                HudManager hud = FindObjectOfType<HudManager>();
+                hud?.SetKillCounter(activeEnemies.Count);
             }
 
             yield return new WaitForSeconds(spawnInterval);
@@ -128,17 +127,18 @@ public class EnemyManager : MonoBehaviour
     {
         castle = castleTransform;
     }
+
     public void StopSpawning()
     {
         spawningEnemies = false;
         activeEnemies.Clear();
     }
+
     public void HandleEnemyDeath(Enemy deadEnemy)
     {
         activeEnemies.Remove(deadEnemy);
         enemiesDefeated++;
 
-        // Update HUD
         HudManager hud = FindObjectOfType<HudManager>();
         if (hud != null)
         {
@@ -146,5 +146,4 @@ public class EnemyManager : MonoBehaviour
             hud.SetEnemyCounter(enemiesDefeated);
         }
     }
-
 }
