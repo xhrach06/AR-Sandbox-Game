@@ -10,35 +10,37 @@ using System.Collections.Generic;
 /// </summary>
 public class KinectDepthTerrain : MonoBehaviour
 {
+    [Header("References")]
     [SerializeField] public MultiSourceManager multiSourceManager;
-
-    private ushort[] rawDepthData;
-    private ushort[] previousDepthSnapshot;
-    private float[,] heightMapCache;
-    private float[,,] splatMap;
-
-    public Vector2 terrainRotation;
-    public readonly Vector2Int depthResolution = new Vector2Int(512, 424);
-    public ushort minDepth = 900;
-    public ushort maxDepth = 1250;
-    public float lowlandsThreshold = 0.33f;
-    public float plainsThreshold = 0.66f;
-    bool mirrorDepth = true;
-
     public Terrain terrain;
-    public float terrainDepthMultiplier = 0.1f;
 
+    [Header("Terrain Configuration")]
+    public readonly Vector2Int depthResolution = new Vector2Int(512, 424); // Kinect depth map resolution
+    public float terrainDepthMultiplier = 0.1f;                            // Height scale multiplier
+    public Vector2 terrainRotation;                                       // Optional rotation (unused)
+
+    [Header("Depth Thresholds")]
+    public ushort minDepth = 900; // Minimum valid depth from Kinect
+    public ushort maxDepth = 1250; // Maximum valid depth from Kinect
+
+    [Header("Texture Thresholds")]
+    public float lowlandsThreshold = 0.33f; // Height % for lowlands layer
+    public float plainsThreshold = 0.66f;   // Height % for plains layer
+
+    [Header("Terrain Layers")]
     public TerrainLayer lowLandsLayer;
     public TerrainLayer plainsLayer;
     public TerrainLayer rocksLayer;
-    private float updateTimer = 0f;
-    private float updateInterval = 0.2f;
-    private float textureUpdateCooldown = 2f;
-    private float lastTextureUpdateTime = 0f;
 
-    private Queue<float[,]> pastHeightMaps = new Queue<float[,]>();
-    private const int heightmapBufferSize = 3;
-    private const float heightChangeThreshold = 0.005f;
+    [Header("Runtime Caches / Buffers")]
+    private ushort[] rawDepthData;                     // Current frame Kinect depth
+    private ushort[] previousDepthSnapshot;            // Previous frame for comparison
+    private float[,] heightMapCache;                   // Smoothed or processed heightmap
+    private float[,,] splatMap;                        // Alpha blend map for texture painting
+
+    [Header("Timing")]
+    private float textureUpdateCooldown = 2f;          // Time between texture updates
+    private float lastTextureUpdateTime = 0f;          // Last texture paint timestamp
 
     /// <summary>
     /// Initializes terrain, layers, and loads saved heightmap if present.
