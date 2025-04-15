@@ -1,69 +1,83 @@
 using UnityEngine;
-using Unity.AI.Navigation;
+using Unity.AI.Navigation; // Required for NavMesh
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
-/// Generates and updates terrain based on Kinect depth input,
-/// including heightmap and texture blending.
+/// Dynamically generates and updates Unity Terrain based on Kinect depth data.
+/// Includes heightmap transformation and texture mapping.
 /// </summary>
 public class KinectDepthTerrain : MonoBehaviour
 {
     [SerializeField] public MultiSourceManager multiSourceManager;
-
-    [Header("References")]
-    public Terrain terrain;
-
-    [Header("Depth Configuration")]
-    public float terrainDepthMultiplier = 0.1f;
-    public Vector2 terrainRotation;
-    public readonly Vector2Int depthResolution = new Vector2Int(512, 424);
-    public ushort minDepth = 900;
-    public ushort maxDepth = 1250;
-
-
-    [Header("Texture Thresholds")]
-    public float lowlandsThreshold = 0.33f;
-    public float plainsThreshold = 0.66f;
-
-    [Header("Terrain Layers")]
-    public TerrainLayer lowLandsLayer, plainsLayer, rocksLayer;
 
     private ushort[] rawDepthData;
     private ushort[] previousDepthSnapshot;
     private float[,] heightMapCache;
     private float[,,] splatMap;
 
+    public Vector2 terrainRotation;
+    public readonly Vector2Int depthResolution = new Vector2Int(512, 424);
+    public ushort minDepth = 900;
+    public ushort maxDepth = 1250;
+    public float lowlandsThreshold = 0.33f;
+    public float plainsThreshold = 0.66f;
+    bool mirrorDepth = true;
+
+    public Terrain terrain;
+    public float terrainDepthMultiplier = 0.1f;
+
+    public TerrainLayer lowLandsLayer;
+    public TerrainLayer plainsLayer;
+    public TerrainLayer rocksLayer;
+    private float updateTimer = 0f;
+    private float updateInterval = 0.2f;
     private float textureUpdateCooldown = 2f;
     private float lastTextureUpdateTime = 0f;
 
+    private Queue<float[,]> pastHeightMaps = new Queue<float[,]>();
+    private const int heightmapBufferSize = 3;
+    private const float heightChangeThreshold = 0.005f;
+
     /// <summary>
-    /// Initializes the terrain and heightmap configuration.
+    /// Initializes terrain, layers, and loads saved heightmap if present.
     /// </summary>
     private void Start()
     {
+        string dllPath = System.IO.Path.Combine(Application.dataPath, "Plugins/KinectUnityAddin.dll");
+        if (System.IO.File.Exists(dllPath))
+        {
+            Debug.Log("✅ Kinect DLL Found in Build: " + dllPath);
+        }
+        else
+        {
+            Debug.LogWarning("❌ Kinect DLL MISSING! Ensure it is in the Plugins folder.");
+        }
+
         if (terrain == null)
         {
-            Debug.LogError("❌ Terrain not assigned.");
+            Debug.LogError("❌ Terrain component not assigned.");
             return;
         }
 
         heightMapCache = new float[depthResolution.y, depthResolution.x];
-        terrain.terrainData.heightmapResolution = depthResolution.x;
-        terrain.terrainData.size = new Vector3(depthResolution.x, 50, depthResolution.y);
 
-        // Ensure terrain layers are present
-        if (terrain.terrainData.terrainLayers.Length == 0)
+        // Ensure terrain layers are assigned
+        if (terrain.terrainData.terrainLayers == null || terrain.terrainData.terrainLayers.Length == 0)
         {
-            terrain.terrainData.terrainLayers = new TerrainLayer[]
-            {
+            Debug.LogWarning("⚠ No terrain layers found. Assigning default layers.");
+            terrain.terrainData.terrainLayers = new TerrainLayer[] {
                 lowLandsLayer, plainsLayer, rocksLayer
             };
         }
+
+        terrain.terrainData.heightmapResolution = depthResolution.x;
+        terrain.terrainData.size = new Vector3(depthResolution.x, 50, depthResolution.y);
     }
 
     /// <summary>
-    /// Syncs the TerrainCollider with the current TerrainData.
+    /// Syncs TerrainCollider with the current TerrainData.
     /// </summary>
     public void SyncTerrainColliderWithTerrain()
     {
@@ -80,28 +94,26 @@ public class KinectDepthTerrain : MonoBehaviour
     }
 
     /// <summary>
-    /// Enables Kinect-driven terrain updates.
+    /// Checks for changes in depth data and updates terrain and textures if needed.
     /// </summary>
-    public void EnableLiveKinectTerrain()
-    {
-        Debug.Log("🔹 Kinect terrain updates enabled.");
-    }
-
-    /// <summary>
-    /// Checks if terrain needs updating and applies new heights and textures if so.
-    /// </summary>
-    /// <returns>True if terrain was updated, false otherwise.</returns>
     public bool CheckAndUpdateTerrain()
     {
-        rawDepthData = multiSourceManager?.GetDepthData();
-        if (rawDepthData == null || rawDepthData.Length == 0)
+        if (multiSourceManager == null)
         {
-            Debug.LogWarning("❌ No Kinect depth data.");
+            Debug.LogError("❌ KinectDepthTerrain: MultiSourceManager is NULL! Cannot get Kinect data.");
             return false;
         }
 
-        if (!DepthChanged())
+        rawDepthData = multiSourceManager.GetDepthData();
+        if (rawDepthData == null || rawDepthData.Length == 0)
+        {
+            Debug.LogError("❌ Kinect depth data is NULL! Skipping terrain update.");
             return false;
+        }
+
+        if (!DepthChanged()) return false;
+
+        Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
 
         GenerateTerrainFromDepthData();
 
@@ -115,16 +127,35 @@ public class KinectDepthTerrain : MonoBehaviour
             previousDepthSnapshot = new ushort[rawDepthData.Length];
 
         System.Array.Copy(rawDepthData, previousDepthSnapshot, rawDepthData.Length);
+
         return true;
     }
 
     /// <summary>
-    /// Detects significant changes in depth data since the last frame.
+    /// Tells all enemies to recalculate their path after terrain updates.
     /// </summary>
-    /// <returns>True if the terrain should be updated.</returns>
+    public IEnumerator NotifyEnemiesToRecalculatePaths()
+    {
+        Enemy[] allEnemies = FindObjectsOfType<Enemy>();
+
+        for (int i = 0; i < allEnemies.Length; i++)
+        {
+            allEnemies[i].FindNewPath();
+
+            if (i % 5 == 0)
+                yield return null;
+        }
+
+        GameManager.Instance.OnEnemyPathRecalculationComplete();
+    }
+
+    /// <summary>
+    /// Checks if current Kinect depth data differs from the previous snapshot.
+    /// </summary>
     private bool DepthChanged()
     {
-        if (previousDepthSnapshot == null) return true;
+        if (previousDepthSnapshot == null || previousDepthSnapshot.Length != rawDepthData.Length)
+            return true;
 
         int significantChanges = 0;
         int checkEvery = 1000;
@@ -133,20 +164,26 @@ public class KinectDepthTerrain : MonoBehaviour
 
         for (int i = 0; i < rawDepthData.Length && significantChanges < 3 && maxChecks > 0; i += checkEvery, maxChecks--)
         {
-            if (Mathf.Abs(rawDepthData[i] - previousDepthSnapshot[i]) > tolerance)
+            int oldDepth = previousDepthSnapshot[i];
+            int newDepth = rawDepthData[i];
+
+            if (Mathf.Abs(newDepth - oldDepth) > tolerance)
+            {
                 significantChanges++;
+            }
         }
 
         return significantChanges >= 3;
     }
 
     /// <summary>
-    /// Converts the depth data into a Unity terrain heightmap.
+    /// Converts Kinect depth data to a terrain heightmap.
     /// </summary>
     public void GenerateTerrainFromDepthData()
     {
         int width = depthResolution.x;
         int height = depthResolution.y;
+        float[,] heightMap = heightMapCache;
 
         for (int y = 0; y < height; y++)
         {
@@ -156,64 +193,76 @@ public class KinectDepthTerrain : MonoBehaviour
                 ushort depth = rawDepthData[index];
 
                 if (depth == 0)
+                {
                     depth = GetValidDepth(x, y, rawDepthData);
+                }
 
                 float normalizedDepth = Mathf.InverseLerp(minDepth, maxDepth, depth);
-                heightMapCache[y, x] = (1f - normalizedDepth) * terrainDepthMultiplier;
+                heightMap[y, x] = (1f - normalizedDepth) * terrainDepthMultiplier;
             }
         }
 
-        terrain.terrainData.SetHeights(0, 0, heightMapCache);
+        terrain.terrainData.SetHeights(0, 0, heightMap);
     }
 
     /// <summary>
-    /// Tries to get a non-zero depth value from neighbors if the current is invalid.
+    /// Attempts to find a non-zero depth value from neighboring pixels.
     /// </summary>
-    private ushort GetValidDepth(int x, int y, ushort[] data)
+    private ushort GetValidDepth(int x, int y, ushort[] depthData)
     {
-        int i = y * depthResolution.x + x;
-        if (data[i] != 0) return data[i];
+        int index = y * depthResolution.x + x;
+        if (depthData[index] != 0) return depthData[index];
 
-        if (x > 0 && data[i - 1] != 0) return data[i - 1];
-        if (y > 0 && data[i - depthResolution.x] != 0) return data[i - depthResolution.x];
+        if (x > 0 && depthData[index - 1] != 0) return depthData[index - 1];
+        if (y > 0 && depthData[index - depthResolution.x] != 0) return depthData[index - depthResolution.x];
 
         return minDepth;
     }
 
     /// <summary>
-    /// Updates terrain textures based on elevation using thresholds.
+    /// Applies texture layers to the terrain based on elevation thresholds.
     /// </summary>
     public void ApplyTexturesBasedOnHeight()
     {
-        int width = terrain.terrainData.alphamapWidth;
-        int height = terrain.terrainData.alphamapHeight;
-        int layers = terrain.terrainData.alphamapLayers;
-
-        if (splatMap == null ||
-            splatMap.GetLength(0) != width ||
-            splatMap.GetLength(1) != height ||
-            splatMap.GetLength(2) != layers)
+        if (terrain.terrainData.alphamapLayers == 0)
         {
-            splatMap = new float[width, height, layers];
+            Debug.LogError("No terrain layers are assigned in the TerrainData!");
+            return;
         }
 
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                float normX = (float)x / width;
-                float normY = (float)y / height;
+        int alphamapWidth = terrain.terrainData.alphamapWidth;
+        int alphamapHeight = terrain.terrainData.alphamapHeight;
+        int layerCount = terrain.terrainData.alphamapLayers;
 
-                float heightVal = terrain.terrainData.GetInterpolatedHeight(normX, normY);
-                heightVal /= terrain.terrainData.size.y;
+        if (splatMap == null ||
+            splatMap.GetLength(0) != alphamapWidth ||
+            splatMap.GetLength(1) != alphamapHeight ||
+            splatMap.GetLength(2) != layerCount)
+        {
+            splatMap = new float[alphamapWidth, alphamapHeight, layerCount];
+        }
+
+        for (int y = 0; y < alphamapHeight; y++)
+        {
+            for (int x = 0; x < alphamapWidth; x++)
+            {
+                float normX = (float)x / alphamapWidth;
+                float normY = (float)y / alphamapHeight;
+
+                float height = terrain.terrainData.GetHeight(
+                    Mathf.RoundToInt(normY * terrain.terrainData.heightmapResolution),
+                    Mathf.RoundToInt(normX * terrain.terrainData.heightmapResolution)
+                );
+
+                height /= terrain.terrainData.size.y;
 
                 splatMap[x, y, 0] = 0;
                 splatMap[x, y, 1] = 0;
                 splatMap[x, y, 2] = 0;
 
-                if (heightVal < lowlandsThreshold)
+                if (height < lowlandsThreshold)
                     splatMap[x, y, 0] = 1f;
-                else if (heightVal < plainsThreshold)
+                else if (height < plainsThreshold)
                     splatMap[x, y, 1] = 1f;
                 else
                     splatMap[x, y, 2] = 1f;
@@ -221,24 +270,36 @@ public class KinectDepthTerrain : MonoBehaviour
         }
 
         terrain.terrainData.SetAlphamaps(0, 0, splatMap);
-        Debug.Log("✅ Textures applied.");
+        Debug.Log("✅ Terrain textures applied successfully.");
     }
 
+
     /// <summary>
-    /// Notifies all enemies to recalculate their paths after a terrain change.
+    /// Smoothes the terrain using a blur pass over the heightmap.
     /// </summary>
-    public IEnumerator NotifyEnemiesToRecalculatePaths()
+    private void SmoothTerrain(int iterations = 2, float strength = 0.5f)
     {
-        List<Enemy> enemies = EnemyManager.Instance.GetAllEnemies();
+        float[,] heightmap = terrain.terrainData.GetHeights(0, 0, depthResolution.x, depthResolution.y);
 
-        for (int i = 0; i < enemies.Count; i++)
+        for (int iter = 0; iter < iterations; iter++)
         {
-            enemies[i].FindNewPath();
+            for (int y = 1; y < depthResolution.y - 1; y++)
+            {
+                for (int x = 1; x < depthResolution.x - 1; x++)
+                {
+                    float averageHeight = (
+                        heightmap[y - 1, x] +
+                        heightmap[y + 1, x] +
+                        heightmap[y, x - 1] +
+                        heightmap[y, x + 1]
+                    ) / 4f;
 
-            if (i % 5 == 0)
-                yield return null;
+                    heightmap[y, x] = Mathf.Lerp(heightmap[y, x], averageHeight, strength);
+                }
+            }
         }
 
-        GameManager.Instance.OnEnemyPathRecalculationComplete();
+        terrain.terrainData.SetHeights(0, 0, heightmap);
+        Debug.Log("Terrain smoothing applied.");
     }
 }

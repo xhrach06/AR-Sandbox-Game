@@ -42,7 +42,6 @@ public class Calibration : MonoBehaviour
 
         // Enable Kinect and terrain updates
         kinectDepthTerrain.enabled = true;
-        kinectDepthTerrain.EnableLiveKinectTerrain();
         kinectDepthTerrain.SyncTerrainColliderWithTerrain();
 
         Debug.Log("📌 Calibration mode: Kinect terrain generation is active.");

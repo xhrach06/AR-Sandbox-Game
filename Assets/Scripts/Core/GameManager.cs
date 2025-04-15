@@ -50,7 +50,6 @@ public class GameManager : MonoBehaviour
 
         timer = gameDuration;
 
-        kinectDepthTerrain.EnableLiveKinectTerrain(); // Start Kinect updates
         StartCoroutine(UpdateLiveTerrain());          // Begin terrain + path recalculation loop
         StartCoroutine(DelayedGameInitialization());  // Wait for terrain, then init gameplay
     }
