@@ -44,27 +44,11 @@ public class KinectDepthTerrain : MonoBehaviour
     /// </summary>
     private void Start()
     {
-        string dllPath = System.IO.Path.Combine(Application.dataPath, "Plugins/KinectUnityAddin.dll");
-        if (System.IO.File.Exists(dllPath))
-        {
-            Debug.Log("✅ Kinect DLL Found in Build: " + dllPath);
-        }
-        else
-        {
-            Debug.LogWarning("❌ Kinect DLL MISSING! Ensure it is in the Plugins folder.");
-        }
-
-        if (terrain == null)
-        {
-            Debug.LogError("❌ Terrain component not assigned.");
-            return;
-        }
-
         heightMapCache = new float[depthResolution.y, depthResolution.x];
 
         if (terrain.terrainData.terrainLayers == null || terrain.terrainData.terrainLayers.Length == 0)
         {
-            Debug.LogWarning("⚠ No terrain layers found. Assigning default layers.");
+            //Debug.LogWarning("⚠ No terrain layers found. Assigning default layers.");
             terrain.terrainData.terrainLayers = new TerrainLayer[] {
                 lowLandsLayer, plainsLayer, rocksLayer
             };
@@ -83,11 +67,11 @@ public class KinectDepthTerrain : MonoBehaviour
         if (terrainCollider != null && terrainCollider.terrainData != terrain.terrainData)
         {
             terrainCollider.terrainData = terrain.terrainData;
-            Debug.Log("TerrainCollider synced with TerrainData.");
+            //Debug.Log("TerrainCollider synced with TerrainData.");
         }
         else
         {
-            Debug.Log("TerrainCollider already synced with TerrainData.");
+            //Debug.Log("TerrainCollider already synced with TerrainData.");
         }
     }
 
@@ -98,20 +82,20 @@ public class KinectDepthTerrain : MonoBehaviour
     {
         if (multiSourceManager == null)
         {
-            Debug.LogError("❌ KinectDepthTerrain: MultiSourceManager is NULL! Cannot get Kinect data.");
+            //Debug.LogError("❌ KinectDepthTerrain: MultiSourceManager is NULL! Cannot get Kinect data.");
             return false;
         }
 
         rawDepthData = multiSourceManager.GetDepthData();
         if (rawDepthData == null || rawDepthData.Length == 0)
         {
-            Debug.LogError("❌ Kinect depth data is NULL! Skipping terrain update.");
+            //Debug.LogError("❌ Kinect depth data is NULL! Skipping terrain update.");
             return false;
         }
 
         if (!DepthChanged()) return false;
 
-        Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
+        //Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
 
         GenerateTerrainFromDepthData();
 
@@ -224,7 +208,7 @@ public class KinectDepthTerrain : MonoBehaviour
     {
         if (terrain.terrainData.alphamapLayers == 0)
         {
-            Debug.LogError("No terrain layers are assigned in the TerrainData!");
+            //Debug.LogError("No terrain layers are assigned in the TerrainData!");
             return;
         }
 
@@ -268,7 +252,7 @@ public class KinectDepthTerrain : MonoBehaviour
         }
 
         terrain.terrainData.SetAlphamaps(0, 0, splatMap);
-        Debug.Log("✅ Terrain textures applied successfully.");
+        //Debug.Log("✅ Terrain textures applied successfully.");
     }
 
 
@@ -298,6 +282,6 @@ public class KinectDepthTerrain : MonoBehaviour
         }
 
         terrain.terrainData.SetHeights(0, 0, heightmap);
-        Debug.Log("Terrain smoothing applied.");
+        //Debug.Log("Terrain smoothing applied.");
     }
 }

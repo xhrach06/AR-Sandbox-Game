@@ -22,7 +22,7 @@ public class Pathfinding : MonoBehaviour
 
         if (startNode == null || targetNode == null || !startNode.walkable || !targetNode.walkable)
         {
-            Debug.LogWarning("❌ Invalid start or target node for pathfinding.");
+            //Debug.LogWarning("❌ Invalid start or target node for pathfinding.");
             return new List<Node>();
         }
 
@@ -62,7 +62,7 @@ public class Pathfinding : MonoBehaviour
             }
         }
 
-        Debug.LogWarning("❌ No valid path found!");
+        //Debug.LogWarning("❌ No valid path found!");
         return new List<Node>();
     }
 

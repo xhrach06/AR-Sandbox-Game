@@ -26,7 +26,7 @@ public class TowerManager : MonoBehaviour
             placedTowerPositions.Add(adjustedPosition);
 
             GameObject tower = Instantiate(towerPrefab, adjustedPosition, Quaternion.identity);
-            Debug.Log($"🏗 Tower {i} placed at: {adjustedPosition}");
+            //Debug.Log($"🏗 Tower {i} placed at: {adjustedPosition}");
         }
     }
 }

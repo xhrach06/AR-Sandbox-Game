@@ -39,14 +39,14 @@ public class PresetManager : MonoBehaviour
         if (calibrationRunning)
             calibration.VisualizePreset();
 
-        Debug.Log($"🔹 Selected preset: {selectedPreset}");
+        //Debug.Log($"🔹 Selected preset: {selectedPreset}");
     }
 
     public void SavePreset()
     {
         string json = JsonUtility.ToJson(presetData, true);
         File.WriteAllText(GetPresetFilePath(), json);
-        Debug.Log($"✅ Preset '{selectedPreset}' saved.");
+        //Debug.Log($"✅ Preset '{selectedPreset}' saved.");
     }
 
     public void LoadPreset()
@@ -57,21 +57,21 @@ public class PresetManager : MonoBehaviour
         {
             string json = File.ReadAllText(path);
             presetData = JsonUtility.FromJson<PresetData>(json);
-            Debug.Log($"📌 Preset '{selectedPreset}' loaded.");
+            //Debug.Log($"📌 Preset '{selectedPreset}' loaded.");
         }
         else
         {
             presetData = new PresetData();
-            Debug.LogWarning($"⚠ Preset '{selectedPreset}' not found. Created new.");
+            //Debug.LogWarning($"⚠ Preset '{selectedPreset}' not found. Created new.");
         }
     }
 
     public void DisplayPresetCounts()
     {
-        Debug.Log($"📌 Preset: {selectedPreset}");
-        Debug.Log($"🏰 Castle: {(presetData.castlePositions.Count > 0 ? "✔ Present" : "❌ Not Set")}");
-        Debug.Log($"🗼 Towers: {presetData.towerPositions.Count}");
-        Debug.Log($"👹 Enemy Spawns: {presetData.enemySpawnPositions.Count}");
+        //Debug.Log($"📌 Preset: {selectedPreset}");
+        //Debug.Log($"🏰 Castle: {(presetData.castlePositions.Count > 0 ? "✔ Present" : "❌ Not Set")}");
+        //Debug.Log($"🗼 Towers: {presetData.towerPositions.Count}");
+        //Debug.Log($"👹 Enemy Spawns: {presetData.enemySpawnPositions.Count}");
     }
 
     public void ClearCastle()
@@ -80,11 +80,11 @@ public class PresetManager : MonoBehaviour
         {
             presetData.castlePositions.Clear();
             SavePreset();
-            Debug.Log($"✅ All castles removed from {selectedPreset}.");
+            //Debug.Log($"✅ All castles removed from {selectedPreset}.");
         }
         else
         {
-            Debug.Log("⚠ No castle data to delete.");
+            //Debug.Log("⚠ No castle data to delete.");
         }
     }
 

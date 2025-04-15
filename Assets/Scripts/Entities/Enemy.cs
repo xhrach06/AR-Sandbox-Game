@@ -74,7 +74,7 @@ public class Enemy : MonoBehaviour
         GameObject canvas = GameObject.Find("HealthBarCanvas");
         if (canvas == null || healthBarPrefab == null)
         {
-            Debug.LogError("❌ HealthBarCanvas or HealthBarPrefab missing for " + gameObject.name);
+            //Debug.LogError("❌ HealthBarCanvas or HealthBarPrefab missing for " + gameObject.name);
             return;
         }
 
@@ -108,11 +108,11 @@ public class Enemy : MonoBehaviour
 
         if (path == null || path.Count == 0)
         {
-            Debug.LogError("❌ Enemy did not receive a valid path!");
+            //Debug.LogError("❌ Enemy did not receive a valid path!");
         }
         else
         {
-            Debug.Log($"✅ Enemy path received! Moving towards {path.Count} nodes.");
+            //Debug.Log($"✅ Enemy path received! Moving towards {path.Count} nodes.");
         }
 
         DrawPathRuntime();
@@ -139,7 +139,7 @@ public class Enemy : MonoBehaviour
         if (Vector3.Distance(transform.position, nextPosition) < 0.5f)
             pathIndex++;
 
-        Debug.Log($"🚶 Enemy moving to next node. Path Index: {pathIndex}/{path.Count}");
+        //Debug.Log($"🚶 Enemy moving to next node. Path Index: {pathIndex}/{path.Count}");
     }
 
     private bool ShouldAttack()
@@ -153,14 +153,14 @@ public class Enemy : MonoBehaviour
         if (Time.time - lastAttackTime < attackCooldown || targetHealth == null) return;
 
         targetHealth.TakeDamage(currentDamage);
-        Debug.Log("Enemy attacked " + target.name + " for " + currentDamage + " damage.");
+        //Debug.Log("Enemy attacked " + target.name + " for " + currentDamage + " damage.");
         lastAttackTime = Time.time;
     }
 
     public void TakeDamage(float damage)
     {
         health.TakeDamage(damage);
-        Debug.Log("Enemy took damage: " + damage);
+        //Debug.Log("Enemy took damage: " + damage);
     }
 
     public void SetTarget(Transform newTarget)
@@ -181,7 +181,7 @@ public class Enemy : MonoBehaviour
         if (other.CompareTag("Castle"))
         {
             isAttackingCastle = true;
-            Debug.Log("⚔️ Enemy collided with the castle and stopped to attack.");
+            //Debug.Log("⚔️ Enemy collided with the castle and stopped to attack.");
         }
     }
 

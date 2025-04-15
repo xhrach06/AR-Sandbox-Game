@@ -29,10 +29,10 @@ public class EnemyManager : MonoBehaviour
     void Start()
     {
         if (grid == null)
-            Debug.LogError("❌ EnemyManager: GridManager is missing!");
+            return;
 
         if (pathfinding == null)
-            Debug.LogError("❌ EnemyManager: Pathfinding is missing!");
+            return;
 
         HudManager hud = FindObjectOfType<HudManager>();
         if (hud != null)
@@ -48,10 +48,7 @@ public class EnemyManager : MonoBehaviour
         spawnPoints = presetManager.GetEnemySpawnPositions();
 
         if (spawnPoints.Count == 0)
-        {
-            Debug.LogError("❌ EnemyManager: No valid enemy spawn points found in preset!");
             return;
-        }
 
         List<Vector3> validSpawnPoints = new();
 
@@ -64,11 +61,11 @@ public class EnemyManager : MonoBehaviour
             if (node != null && node.walkable)
             {
                 validSpawnPoints.Add(node.worldPosition);
-                Debug.Log($"✅ Enemy spawn point adjusted to: {node.worldPosition}");
+                //Debug..Log($"✅ Enemy spawn point adjusted to: {node.worldPosition}");
             }
             else
             {
-                Debug.LogWarning($"⚠️ Enemy spawn point {adjustedSpawn} is not walkable! Skipping...");
+                //Debug..LogWarning($"⚠️ Enemy spawn point {adjustedSpawn} is not walkable! Skipping...");
             }
         }
 
@@ -79,7 +76,7 @@ public class EnemyManager : MonoBehaviour
     {
         if (spawnPoints.Count == 0)
         {
-            Debug.LogError("❌ EnemyManager: Cannot spawn enemies. No spawn points available.");
+            //Debug..LogError("❌ EnemyManager: Cannot spawn enemies. No spawn points available.");
             return;
         }
 
@@ -96,7 +93,7 @@ public class EnemyManager : MonoBehaviour
             Node node = grid.GetNodeFromWorldPosition(spawnPoint);
             if (node == null || !node.walkable)
             {
-                Debug.LogWarning($"⚠️ Enemy spawn point {spawnPoint} is not walkable! Skipping...");
+                //Debug..LogWarning($"⚠️ Enemy spawn point {spawnPoint} is not walkable! Skipping...");
                 yield return null;
                 continue;
             }

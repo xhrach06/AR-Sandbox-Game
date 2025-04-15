@@ -24,7 +24,7 @@ public class GameplayCameraManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("KinectDepthTerrain not assigned to GameplayCameraManager.");
+            //Debug.LogWarning("KinectDepthTerrain not assigned to GameplayCameraManager.");
         }
     }
 
@@ -41,6 +41,6 @@ public class GameplayCameraManager : MonoBehaviour
         // Load camera size
         mainCamera.orthographicSize = PlayerPrefs.GetFloat("CameraSize", 5);
 
-        Debug.Log("Gameplay camera settings loaded.");
+        //Debug.Log("Gameplay camera settings loaded.");
     }
 }

@@ -25,7 +25,7 @@ public class CastleManager : MonoBehaviour
 
         if (positions.Count == 0)
         {
-            Debug.LogError("❌ CastleManager: No valid castle position found in preset!");
+            //Debug.LogError("❌ CastleManager: No valid castle position found in preset!");
             return;
         }
 
@@ -33,7 +33,7 @@ public class CastleManager : MonoBehaviour
         Vector3 adjustedPosition = new Vector3(positions[0].x, terrainHeight + 2f, positions[0].z);
 
         placedCastle = Instantiate(castlePrefab, adjustedPosition, Quaternion.identity);
-        Debug.Log($"🏰 Castle placed at: {adjustedPosition}");
+        //Debug.Log($"🏰 Castle placed at: {adjustedPosition}");
     }
 
     public void HandleCastleDestroyed()
