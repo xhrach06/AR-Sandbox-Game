@@ -1,20 +1,37 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class GridManager : MonoBehaviour
 {
-    public Vector2Int gridSize = new Vector2Int(20, 20); // Defines the grid's size (width and height)
-    public float nodeSize = 1f; // The size of each grid cell
-    public Terrain terrain; // Reference to the terrain
-    public LayerMask obstacleMask; // The layer mask for obstacles (e.g., towers)
+    public Vector2Int gridSize = new Vector2Int(64, 53); // Adjusted size
+    public float nodeSize = 8f;                          // Adjusted node resolution
+    public Terrain terrain;
+    public Node[,] grid;
 
-    public Node[,] grid; // 2D array of nodes representing the grid
+    // Reference to tower positions (assigned after placement)
+    private HashSet<Vector2Int> occupiedNodes = new HashSet<Vector2Int>();
 
     void Start()
     {
-        GenerateGrid(); // Creates the grid at the start of the game
+        GenerateGrid();
     }
 
-    // 🔹 Generates the grid by creating nodes based on the terrain height and obstacles
+    public void SetObstaclePositions(List<Vector3> worldPositions)
+    {
+        occupiedNodes.Clear();
+
+        foreach (Vector3 pos in worldPositions)
+        {
+            Vector2Int gridPos = new Vector2Int(
+                Mathf.FloorToInt(pos.x / nodeSize),
+                Mathf.FloorToInt(pos.z / nodeSize)
+            );
+
+            if (!occupiedNodes.Contains(gridPos))
+                occupiedNodes.Add(gridPos);
+        }
+    }
+
     public void GenerateGrid()
     {
         grid = new Node[gridSize.x, gridSize.y];
@@ -23,23 +40,14 @@ public class GridManager : MonoBehaviour
         {
             for (int y = 0; y < gridSize.y; y++)
             {
-                // Convert grid position to world coordinates
                 Vector3 worldPoint = new Vector3(x * nodeSize, 0, y * nodeSize);
-                worldPoint.y = terrain.SampleHeight(worldPoint); // Adjust y-coordinate based on terrain height
+                worldPoint.y = terrain.SampleHeight(worldPoint);
 
-                // Check if this node is walkable (not inside an obstacle)
-                float checkRadius = nodeSize * 0.5f;
-                bool walkable = !Physics.CheckSphere(worldPoint + Vector3.up * 2f, checkRadius, obstacleMask);
+                Vector2Int currentGridPos = new Vector2Int(x, y);
+                bool walkable = !occupiedNodes.Contains(currentGridPos);
 
-                if (!walkable)
-                {
-                    //Debug.Log($"🚧 Obstacle detected at {worldPoint}");
-                }
-
-                // Calculate movement cost based on height difference (hills affect movement speed)
                 float heightCost = Mathf.Abs(worldPoint.y - terrain.SampleHeight(worldPoint));
 
-                // Create a new node and store it in the grid
                 grid[x, y] = new Node(worldPoint, walkable, heightCost);
             }
         }
@@ -50,29 +58,24 @@ public class GridManager : MonoBehaviour
         int x = Mathf.FloorToInt(worldPosition.x / nodeSize);
         int y = Mathf.FloorToInt(worldPosition.z / nodeSize);
 
-        // Ensure the index is within bounds
         if (x < 0 || x >= gridSize.x || y < 0 || y >= gridSize.y)
             return null;
 
         return grid[x, y];
     }
 
-    // 🔹 Draws the grid in the editor for visualization
     void OnDrawGizmos()
     {
         if (grid == null) return;
 
-        // Loop through all nodes and draw their positions
         for (int x = 0; x < gridSize.x; x++)
         {
             for (int y = 0; y < gridSize.y; y++)
             {
                 Node node = grid[x, y];
-
-                Gizmos.color = node.walkable ? Color.green : Color.red; // Walkable nodes are green, obstacles are red
-                Gizmos.DrawCube(node.worldPosition, Vector3.one * (nodeSize * 0.8f)); // Small cube for each node
+                Gizmos.color = node.walkable ? Color.green : Color.red;
+                Gizmos.DrawCube(node.worldPosition, Vector3.one * (nodeSize * 0.5f));
             }
         }
     }
-
 }

@@ -34,8 +34,10 @@ public class KinectDepthTerrain : MonoBehaviour
 
     private float[,] heightMapCache;
     private ushort[] previousDepthSnapshot;
-    private float textureUpdateCooldown = 1.5f;
+    private float textureUpdateCooldown = 2f;
     private float lastTextureUpdateTime = 0f;
+    private float[,,] splatMap;
+
 
     private void Start()
     {
@@ -160,13 +162,17 @@ public class KinectDepthTerrain : MonoBehaviour
         Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
 
         GenerateTerrainFromDepthData();
-        ApplyTexturesBasedOnHeight();
+        if (Time.time - lastTextureUpdateTime > textureUpdateCooldown)
+        {
+            ApplyTexturesBasedOnHeight();
+            lastTextureUpdateTime = Time.time;
+        }
+
         if (previousDepthSnapshot == null || previousDepthSnapshot.Length != rawDepthData.Length)
             previousDepthSnapshot = new ushort[rawDepthData.Length];
 
         System.Array.Copy(rawDepthData, previousDepthSnapshot, rawDepthData.Length);
 
-        previousDepthSnapshot = (ushort[])rawDepthData.Clone();
         return true;
     }
 
@@ -178,10 +184,11 @@ public class KinectDepthTerrain : MonoBehaviour
         {
             allEnemies[i].FindNewPath();
 
-            // Spread over time — every few enemies, yield control
             if (i % 5 == 0)
-                yield return null; // Wait one frame after every 5
+                yield return null;
         }
+
+        GameManager.Instance.OnEnemyPathRecalculationComplete();
     }
 
 
@@ -303,51 +310,54 @@ public class KinectDepthTerrain : MonoBehaviour
     {
         if (terrain.terrainData.alphamapLayers == 0)
         {
-            Debug.LogError("No terrain layers are assigned in the TerrainData! Please assign layers to the terrain.");
+            Debug.LogError("No terrain layers are assigned in the TerrainData!");
             return;
         }
 
         int alphamapWidth = terrain.terrainData.alphamapWidth;
         int alphamapHeight = terrain.terrainData.alphamapHeight;
         int layerCount = terrain.terrainData.alphamapLayers;
-        float[,,] splatMap = new float[alphamapWidth, alphamapHeight, layerCount];
+
+        // Only create splatMap once
+        if (splatMap == null ||
+            splatMap.GetLength(0) != alphamapWidth ||
+            splatMap.GetLength(1) != alphamapHeight ||
+            splatMap.GetLength(2) != layerCount)
+        {
+            splatMap = new float[alphamapWidth, alphamapHeight, layerCount];
+        }
 
         for (int y = 0; y < alphamapHeight; y++)
         {
             for (int x = 0; x < alphamapWidth; x++)
             {
-                float normalizedX = (float)x / alphamapWidth;
-                float normalizedY = (float)y / alphamapHeight;
+                float normX = (float)x / alphamapWidth;
+                float normY = (float)y / alphamapHeight;
 
                 float height = terrain.terrainData.GetHeight(
-                    Mathf.RoundToInt(normalizedY * terrain.terrainData.heightmapResolution),
-                    Mathf.RoundToInt(normalizedX * terrain.terrainData.heightmapResolution)
+                    Mathf.RoundToInt(normY * terrain.terrainData.heightmapResolution),
+                    Mathf.RoundToInt(normX * terrain.terrainData.heightmapResolution)
                 );
 
                 height /= terrain.terrainData.size.y;
 
-                splatMap[x, y, 0] = 0f;
-                splatMap[x, y, 1] = 0f;
-                splatMap[x, y, 2] = 0f;
+                splatMap[x, y, 0] = 0;
+                splatMap[x, y, 1] = 0;
+                splatMap[x, y, 2] = 0;
 
                 if (height < lowlandsThreshold)
-                {
                     splatMap[x, y, 0] = 1f;
-                }
                 else if (height < plainsThreshold)
-                {
                     splatMap[x, y, 1] = 1f;
-                }
                 else
-                {
                     splatMap[x, y, 2] = 1f;
-                }
             }
         }
 
         terrain.terrainData.SetAlphamaps(0, 0, splatMap);
         Debug.Log("✅ Terrain textures applied successfully.");
     }
+
 
     public void SaveTerrain()
     {

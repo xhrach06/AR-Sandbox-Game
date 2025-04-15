@@ -9,6 +9,8 @@ public class TowerManager : MonoBehaviour
 
     private List<Vector3> placedTowerPositions = new List<Vector3>();
 
+    public List<Vector3> GetTowerPositions() => placedTowerPositions;
+
     public void PlaceTowers()
     {
         PresetManager presetManager = FindObjectOfType<PresetManager>();
@@ -18,10 +20,12 @@ public class TowerManager : MonoBehaviour
         {
             float terrainHeight = Terrain.activeTerrain.SampleHeight(positions[i]);
             Vector3 adjustedPosition = new Vector3(positions[i].x, terrainHeight + 1f, positions[i].z);
+            placedTowerPositions.Add(adjustedPosition);
 
             GameObject tower = Instantiate(towerPrefab, adjustedPosition, Quaternion.identity);
             Debug.Log($"🏗 Tower {i} placed at: {adjustedPosition}");
         }
     }
+
 
 }

@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     public TerrainPainter terrainPainter;
     public KinectDepthTerrain kinectDepthTerrain; // ✅ Added Kinect terrain reference
     public GridManager gridManager;
+    private Coroutine pathRecalcRoutine;
 
     public int numberOfTowers = 3;
     public float gameDuration = 120f;
@@ -78,6 +79,8 @@ public class GameManager : MonoBehaviour
         Debug.Log("🏰 Placing castle and towers...");
         castleManager.PlaceCastle();
         towerManager.PlaceTowers();
+        List<Vector3> towerPositions = towerManager.GetTowerPositions();
+        gridManager.SetObstaclePositions(towerPositions);
 
         if (gridManager != null)
         {
@@ -111,6 +114,11 @@ public class GameManager : MonoBehaviour
         gameRunning = true;
     }
 
+    public void OnEnemyPathRecalculationComplete()
+    {
+        pathRecalcRoutine = null;
+    }
+
     private IEnumerator UpdateLiveTerrain()
     {
         while (true)
@@ -127,7 +135,11 @@ public class GameManager : MonoBehaviour
                         Debug.Log("🔄 Re-generating pathfinding grid...");
                         gridManager.GenerateGrid();
                     }
-                    StartCoroutine(kinectDepthTerrain.NotifyEnemiesToRecalculatePaths());
+                    // ✅ Only start this coroutine if one isn't already running
+                    if (pathRecalcRoutine == null)
+                    {
+                        pathRecalcRoutine = StartCoroutine(kinectDepthTerrain.NotifyEnemiesToRecalculatePaths());
+                    }
                 }
             }
         }
