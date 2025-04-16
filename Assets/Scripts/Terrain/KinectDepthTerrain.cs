@@ -40,7 +40,7 @@ public class KinectDepthTerrain : MonoBehaviour
     private float lastTextureUpdateTime = 0f;          // Last texture paint timestamp
 
     [Header("Change sensitivity")]
-    int depthChangedTolerance = 20;
+    public int depthChangedTolerance = 20;
 
     /// <summary>
     /// Initializes terrain, layers, and loads saved heightmap if present.
