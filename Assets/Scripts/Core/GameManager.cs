@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-
+using UnityEngine.SceneManagement;
 /// <summary>
 /// Controls the overall game flow, including terrain updates, enemy spawning, and end game handling.
 /// </summary>
@@ -56,6 +56,11 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            RestartGame();
+        }
+
         if (!gameRunning) return;
 
         timer -= Time.deltaTime;
@@ -176,4 +181,11 @@ public class GameManager : MonoBehaviour
         enemyManager.StopSpawning();
         Time.timeScale = 0;
     }
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1f; // In case the game was paused
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
 }

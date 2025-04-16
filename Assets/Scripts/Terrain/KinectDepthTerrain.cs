@@ -98,6 +98,7 @@ public class KinectDepthTerrain : MonoBehaviour
         //Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
 
         GenerateTerrainFromDepthData();
+        SmoothTerrain();
 
         if (Time.time - lastTextureUpdateTime > textureUpdateCooldown)
         {
@@ -285,4 +286,5 @@ public class KinectDepthTerrain : MonoBehaviour
         terrain.terrainData.SetHeights(0, 0, heightmap);
         //Debug.Log("Terrain smoothing applied.");
     }
+
 }

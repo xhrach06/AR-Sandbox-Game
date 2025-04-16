@@ -11,6 +11,7 @@ public class HudManager : MonoBehaviour
     public TMP_Text KillCountContainer;
     public TMP_Text EnemyCounterContainer;
     public TMP_Text GameOverTextContainer;
+    public GameObject RestartButton;
 
     private float timer = 0f;
 
@@ -39,5 +40,7 @@ public class HudManager : MonoBehaviour
     public void SetGameOverText(string message)
     {
         GameOverTextContainer.text = message;
+        RestartButton.SetActive(true);
     }
+
 }
