@@ -92,13 +92,13 @@ public class KinectDepthTerrain : MonoBehaviour
             //Debug.LogError("❌ Kinect depth data is NULL! Skipping terrain update.");
             return false;
         }
-
+        SmoothRawDepthData();
         if (!DepthChanged()) return false;
 
         //Debug.Log($"🔄 KinectDepthTerrain: Updating terrain at {Time.time} with {rawDepthData.Length} depth points.");
 
         GenerateTerrainFromDepthData();
-        SmoothTerrain();
+        //SmoothTerrain();
 
         if (Time.time - lastTextureUpdateTime > textureUpdateCooldown)
         {
@@ -144,7 +144,7 @@ public class KinectDepthTerrain : MonoBehaviour
         int significantChanges = 0;
         int checkEvery = 1000;
         int maxChecks = 30;
-        int tolerance = 5;
+        int tolerance = 10;
 
         for (int i = 0; i < rawDepthData.Length && significantChanges < 3 && maxChecks > 0; i += checkEvery, maxChecks--)
         {
@@ -285,6 +285,50 @@ public class KinectDepthTerrain : MonoBehaviour
 
         terrain.terrainData.SetHeights(0, 0, heightmap);
         //Debug.Log("Terrain smoothing applied.");
+    }
+    /// <summary>
+    /// Smoothes depth data using a blur pass over them.
+    /// </summary>
+    /// <summary>
+    /// Smoothes raw depth data using a simple blur pass.
+    /// </summary>
+    private void SmoothRawDepthData(float strength = 0.5f)
+    {
+        ushort[] smoothedDepthData = new ushort[rawDepthData.Length];
+
+        for (int y = 1; y < depthResolution.y - 1; y++)
+        {
+            for (int x = 1; x < depthResolution.x - 1; x++)
+            {
+                int index = y * depthResolution.x + x;
+
+                ushort center = rawDepthData[index];
+                if (center == 0)
+                    continue;
+
+                int upIndex = (y - 1) * depthResolution.x + x;
+                int downIndex = (y + 1) * depthResolution.x + x;
+                int leftIndex = y * depthResolution.x + (x - 1);
+                int rightIndex = y * depthResolution.x + (x + 1);
+
+                ushort up = rawDepthData[upIndex];
+                ushort down = rawDepthData[downIndex];
+                ushort left = rawDepthData[leftIndex];
+                ushort right = rawDepthData[rightIndex];
+
+                // Use center as fallback if neighbor is invalid
+                float validUp = up != 0 ? up : center;
+                float validDown = down != 0 ? down : center;
+                float validLeft = left != 0 ? left : center;
+                float validRight = right != 0 ? right : center;
+
+                float average = (validUp + validDown + validLeft + validRight) / 4f;
+                smoothedDepthData[index] = (ushort)Mathf.Lerp(center, average, strength);
+            }
+        }
+
+        // ✅ Only copy once AFTER smoothing
+        smoothedDepthData.CopyTo(rawDepthData, 0);
     }
 
 }
