@@ -39,6 +39,9 @@ public class KinectDepthTerrain : MonoBehaviour
     private float textureUpdateCooldown = 2f;          // Time between texture updates
     private float lastTextureUpdateTime = 0f;          // Last texture paint timestamp
 
+    [Header("Change sensitivity")]
+    int depthChangedTolerance = 20;
+
     /// <summary>
     /// Initializes terrain, layers, and loads saved heightmap if present.
     /// </summary>
@@ -144,14 +147,13 @@ public class KinectDepthTerrain : MonoBehaviour
         int significantChanges = 0;
         int checkEvery = 1000;
         int maxChecks = 30;
-        int tolerance = 10;
 
         for (int i = 0; i < rawDepthData.Length && significantChanges < 3 && maxChecks > 0; i += checkEvery, maxChecks--)
         {
             int oldDepth = previousDepthSnapshot[i];
             int newDepth = rawDepthData[i];
 
-            if (Mathf.Abs(newDepth - oldDepth) > tolerance)
+            if (Mathf.Abs(newDepth - oldDepth) > depthChangedTolerance)
             {
                 significantChanges++;
             }
