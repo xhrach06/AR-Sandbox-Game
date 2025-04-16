@@ -141,9 +141,8 @@ MonoBehaviour:
   attackRange: 30
   attackCooldown: 1
   damageToCastle: 10
-  moveSpeed: 2.5
+  moveSpeed: 3
   avoidRadius: 10
-  health: {fileID: 0}
   offsetDistance: 2
   barrierPassChance: 50
   healthBarPrefab: {fileID: 5162456313399883726, guid: 57e8c2ae43a5c2e4cb7448e63b46d784, type: 3}
