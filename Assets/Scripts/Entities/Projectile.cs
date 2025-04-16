@@ -23,9 +23,10 @@ public class Projectile : MonoBehaviour
 
     public void SetMissDirection(Vector3 dir)
     {
-        moveDirection = dir;
         isMiss = true;
-        Destroy(gameObject, 3f); // Auto-destroy missed projectile
+        Quaternion lookRotation = Quaternion.LookRotation(dir);
+        transform.rotation = lookRotation * Quaternion.Euler(90, 0, 0);
+        Destroy(gameObject, 3f);
     }
 
     private void Update()
@@ -33,6 +34,11 @@ public class Projectile : MonoBehaviour
         if (isMiss)
         {
             transform.position += moveDirection * speed * Time.deltaTime;
+
+            // 🔄 Rotate to face movement direction
+            if (moveDirection != Vector3.zero)
+                transform.rotation = Quaternion.LookRotation(moveDirection);
+
             return;
         }
 
@@ -44,7 +50,15 @@ public class Projectile : MonoBehaviour
 
         Vector3 direction = (target.position - transform.position).normalized;
         transform.position += direction * speed * Time.deltaTime;
+
+        // 🔄 Rotate to face the target direction
+        if (direction != Vector3.zero)
+        {
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+            transform.rotation = lookRotation * Quaternion.Euler(90, 0, 0);
+        }
     }
+
 
     private void OnTriggerEnter(Collider other)
     {

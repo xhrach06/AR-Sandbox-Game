@@ -288,9 +288,7 @@ public class KinectDepthTerrain : MonoBehaviour
         terrain.terrainData.SetHeights(0, 0, heightmap);
         //Debug.Log("Terrain smoothing applied.");
     }
-    /// <summary>
-    /// Smoothes depth data using a blur pass over them.
-    /// </summary>
+
     /// <summary>
     /// Smoothes raw depth data using a simple blur pass.
     /// </summary>
