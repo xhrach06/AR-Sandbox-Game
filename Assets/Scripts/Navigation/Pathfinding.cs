@@ -9,12 +9,7 @@ public class Pathfinding : MonoBehaviour
     public GridManager grid;
     public int heightWeight = 10;
 
-    /// <summary>
     /// Finds a path from start position to target position using A* algorithm.
-    /// </summary>
-    /// <param name="startPos">The starting world position.</param>
-    /// <param name="targetPos">The target world position.</param>
-    /// <returns>List of nodes forming the path. Empty if path not found.</returns>
     public List<Node> FindPath(Vector3 startPos, Vector3 targetPos)
     {
         Node startNode = GetNodeFromWorldPosition(startPos);
@@ -22,7 +17,7 @@ public class Pathfinding : MonoBehaviour
 
         if (startNode == null || targetNode == null || !startNode.walkable || !targetNode.walkable)
         {
-            //Debug.LogWarning("❌ Invalid start or target node for pathfinding.");
+            Debug.LogWarning("Invalid start or target node for pathfinding.");
             return new List<Node>();
         }
 
@@ -62,16 +57,11 @@ public class Pathfinding : MonoBehaviour
             }
         }
 
-        //Debug.LogWarning("❌ No valid path found!");
+        Debug.LogWarning("No valid path found!");
         return new List<Node>();
     }
 
-    /// <summary>
     /// Retraces the path from end node to start node using parent links.
-    /// </summary>
-    /// <param name="startNode">Starting node.</param>
-    /// <param name="endNode">Target node.</param>
-    /// <returns>List of nodes forming the path from start to end.</returns>
     private List<Node> RetracePath(Node startNode, Node endNode)
     {
         List<Node> path = new List<Node>();
@@ -87,12 +77,7 @@ public class Pathfinding : MonoBehaviour
         return path;
     }
 
-    /// <summary>
     /// Calculates movement cost between two nodes, factoring in height difference.
-    /// </summary>
-    /// <param name="a">First node.</param>
-    /// <param name="b">Second node.</param>
-    /// <returns>Estimated movement cost.</returns>
     private int GetDistance(Node a, Node b)
     {
         int dx = Mathf.Abs(a.gridX - b.gridX);
@@ -104,11 +89,7 @@ public class Pathfinding : MonoBehaviour
         return dx + dy + heightPenalty;
     }
 
-    /// <summary>
     /// Converts a world position to the corresponding node on the grid.
-    /// </summary>
-    /// <param name="worldPosition">World space position.</param>
-    /// <returns>Corresponding node in the grid.</returns>
     private Node GetNodeFromWorldPosition(Vector3 worldPosition)
     {
         int x = Mathf.FloorToInt(worldPosition.x / grid.nodeSize);
@@ -120,11 +101,7 @@ public class Pathfinding : MonoBehaviour
         return grid.grid[x, y];
     }
 
-    /// <summary>
     /// Returns all valid neighboring nodes of the given node (including diagonals).
-    /// </summary>
-    /// <param name="node">The node to check neighbors for.</param>
-    /// <returns>List of neighboring nodes.</returns>
     private List<Node> GetNeighbors(Node node)
     {
         List<Node> neighbors = new List<Node>();

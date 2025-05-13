@@ -37,7 +37,7 @@ public class Enemy : MonoBehaviour
     private int pathIndex;
 
     public System.Action<Enemy> OnEnemyDeath;
-
+    // Initializes enemy stats, components, health bar, and pathfinding
     private void Start()
     {
         pathLine = GetComponent<LineRenderer>();
@@ -59,7 +59,7 @@ public class Enemy : MonoBehaviour
         isInitialized = true;
         FindNewPath();
     }
-
+    // Updates movement and attacks each frame
     private void Update()
     {
         if (!isAttackingCastle && path != null && pathIndex < path.Count)
@@ -68,13 +68,13 @@ public class Enemy : MonoBehaviour
         if (ShouldAttack())
             Attack();
     }
-
+    // Sets up and links the health bar UI
     private void SetupHealthBar()
     {
         GameObject canvas = GameObject.Find("HealthBarCanvas");
         if (canvas == null || healthBarPrefab == null)
         {
-            //Debug.LogError("❌ HealthBarCanvas or HealthBarPrefab missing for " + gameObject.name);
+            Debug.LogError("HealthBarCanvas or HealthBarPrefab missing for " + gameObject.name);
             return;
         }
 
@@ -88,7 +88,7 @@ public class Enemy : MonoBehaviour
 
         health.SetLinkedHealthBar(bar);
     }
-
+    // Clamps enemy start position to grid bounds
     private void ClampStartPositionToGrid()
     {
         Vector3 clampedPosition = new Vector3(
@@ -98,7 +98,7 @@ public class Enemy : MonoBehaviour
         );
         transform.position = clampedPosition;
     }
-
+    // Finds a new path to the target using pathfinding
     public void FindNewPath()
     {
         if (!isInitialized || pathfinding == null || target == null) return;
@@ -108,16 +108,16 @@ public class Enemy : MonoBehaviour
 
         if (path == null || path.Count == 0)
         {
-            //Debug.LogError("❌ Enemy did not receive a valid path!");
+            Debug.LogError("Enemy did not receive a valid path!");
         }
         else
         {
-            //Debug.Log($"✅ Enemy path received! Moving towards {path.Count} nodes.");
+            Debug.Log($"Enemy path received! Moving towards {path.Count} nodes.");
         }
 
         DrawPathRuntime();
     }
-
+    // Moves the enemy along the current path
     private void FollowPath()
     {
         Vector3 nextPosition = path[pathIndex].worldPosition;
@@ -139,36 +139,38 @@ public class Enemy : MonoBehaviour
         if (Vector3.Distance(transform.position, nextPosition) < 0.5f)
             pathIndex++;
 
-        //Debug.Log($"🚶 Enemy moving to next node. Path Index: {pathIndex}/{path.Count}");
     }
 
+    // Checks whether the enemy should attack
     private bool ShouldAttack()
     {
         return (isAttackingCastle && targetHealth != null) ||
                (target != null && Vector3.Distance(transform.position, target.position) < attackRange);
     }
 
+    // Performs an attack on the target
     private void Attack()
     {
         if (Time.time - lastAttackTime < attackCooldown || targetHealth == null) return;
 
         targetHealth.TakeDamage(currentDamage);
-        //Debug.Log("Enemy attacked " + target.name + " for " + currentDamage + " damage.");
         lastAttackTime = Time.time;
     }
 
+    // Applies damage to the enemy
     public void TakeDamage(float damage)
     {
         health.TakeDamage(damage);
-        //Debug.Log("Enemy took damage: " + damage);
     }
 
+    // Sets a new target and updates health reference
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
         targetHealth = target.GetComponent<Health>();
     }
 
+    // Multiplies health and damage based on a strength value
     public void SetStrengthMultiplier(float multiplier)
     {
         currentHealth = baseHealth * multiplier;
@@ -176,15 +178,15 @@ public class Enemy : MonoBehaviour
         health.SetHealth(currentHealth);
     }
 
+    // Triggers attack behavior when colliding with the castle
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Castle"))
         {
             isAttackingCastle = true;
-            //Debug.Log("⚔️ Enemy collided with the castle and stopped to attack.");
         }
     }
-
+    // Draws the enemy path in the editor for debugging
     private void OnDrawGizmos()
     {
         if (path == null || path.Count <= 1) return;
@@ -197,7 +199,7 @@ public class Enemy : MonoBehaviour
         foreach (Node node in path)
             Gizmos.DrawSphere(node.worldPosition, 2f);
     }
-
+    // Draws the current path at runtime using LineRenderer
     public void DrawPathRuntime()
     {
         if (pathLine == null || path == null || path.Count < 2)

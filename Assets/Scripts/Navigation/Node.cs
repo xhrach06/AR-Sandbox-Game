@@ -29,9 +29,7 @@ public class Node : System.IComparable<Node>
         gridY = y;
     }
 
-    /// <summary>
     /// Used by the priority queue to sort nodes by fCost and hCost.
-    /// </summary>
     public int CompareTo(Node other)
     {
         int compare = fCost.CompareTo(other.fCost);

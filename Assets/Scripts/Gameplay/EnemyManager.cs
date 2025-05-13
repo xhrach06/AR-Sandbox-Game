@@ -21,11 +21,13 @@ public class EnemyManager : MonoBehaviour
     private bool spawningEnemies = false;
     private int enemiesDefeated = 0;
 
+    // Initializes the singleton instance
     void Awake()
     {
         Instance = this;
     }
 
+    // Initializes HUD and validates dependencies
     void Start()
     {
         if (grid == null)
@@ -41,7 +43,7 @@ public class EnemyManager : MonoBehaviour
             hud.SetEnemyCounter(0);
         }
     }
-
+    // Initializes and filters valid spawn points using preset data
     public void InitializeSpawnPoints()
     {
         PresetManager presetManager = FindObjectOfType<PresetManager>();
@@ -61,29 +63,29 @@ public class EnemyManager : MonoBehaviour
             if (node != null && node.walkable)
             {
                 validSpawnPoints.Add(node.worldPosition);
-                //Debug..Log($"✅ Enemy spawn point adjusted to: {node.worldPosition}");
+                Debug.Log($"Enemy spawn point adjusted to: {node.worldPosition}");
             }
             else
             {
-                //Debug..LogWarning($"⚠️ Enemy spawn point {adjustedSpawn} is not walkable! Skipping...");
+                Debug.LogWarning($"Enemy spawn point {adjustedSpawn} is not walkable! Skipping...");
             }
         }
 
         spawnPoints = validSpawnPoints;
     }
-
+    // Starts spawning enemies in intervals
     public void StartSpawningEnemiesContinuously()
     {
         if (spawnPoints.Count == 0)
         {
-            //Debug..LogError("❌ EnemyManager: Cannot spawn enemies. No spawn points available.");
+            Debug.LogError("EnemyManager: Cannot spawn enemies. No spawn points available.");
             return;
         }
 
         spawningEnemies = true;
         StartCoroutine(SpawnEnemies());
     }
-
+    // Coroutine that spawns enemies at regular intervals
     private IEnumerator SpawnEnemies()
     {
         while (spawningEnemies)
@@ -93,7 +95,7 @@ public class EnemyManager : MonoBehaviour
             Node node = grid.GetNodeFromWorldPosition(spawnPoint);
             if (node == null || !node.walkable)
             {
-                //Debug..LogWarning($"⚠️ Enemy spawn point {spawnPoint} is not walkable! Skipping...");
+                Debug.LogWarning($"Enemy spawn point {spawnPoint} is not walkable! Skipping...");
                 yield return null;
                 continue;
             }
@@ -115,22 +117,26 @@ public class EnemyManager : MonoBehaviour
         }
     }
 
+    // Returns list of all active enemies
     public List<Enemy> GetAllEnemies()
     {
         return activeEnemies;
     }
 
+    // Assigns the castle as the target for all enemies
     public void SetCastleTarget(Transform castleTransform)
     {
         castle = castleTransform;
     }
 
+    // Stops enemy spawning and clears active enemy list
     public void StopSpawning()
     {
         spawningEnemies = false;
         activeEnemies.Clear();
     }
 
+    // Handles logic when an enemy dies
     public void HandleEnemyDeath(Enemy deadEnemy)
     {
         activeEnemies.Remove(deadEnemy);

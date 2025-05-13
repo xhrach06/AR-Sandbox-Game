@@ -13,10 +13,7 @@ public class HeightmapData
 
     public float[] heights;
 
-    /// <summary>
     /// Constructs a HeightmapData object from a 2D height array.
-    /// </summary>
-    /// <param name="heightmap">2D float array representing the terrain heightmap.</param>
     public HeightmapData(float[,] heightmap)
     {
         width = heightmap.GetLength(1); // Columns
@@ -32,10 +29,7 @@ public class HeightmapData
         }
     }
 
-    /// <summary>
     /// Converts the stored 1D height array back to a 2D heightmap.
-    /// </summary>
-    /// <returns>2D float array representing the original heightmap.</returns>
     public float[,] To2DArray()
     {
         float[,] heightmap = new float[height, width];

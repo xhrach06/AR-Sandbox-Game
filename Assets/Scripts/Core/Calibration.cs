@@ -40,7 +40,7 @@ public class Calibration : MonoBehaviour
         presetManager = FindObjectOfType<PresetManager>();
         if (presetManager == null)
         {
-            //Debug.LogError("❌ No PresetManager found in the scene!");
+            //Debug.LogError("No PresetManager found in the scene!");
             return;
         }
 
@@ -50,7 +50,6 @@ public class Calibration : MonoBehaviour
         kinectDepthTerrain.enabled = true;
         kinectDepthTerrain.SyncTerrainColliderWithTerrain();
 
-        //Debug.Log("📌 Calibration mode: Kinect terrain generation is active.");
         StartCoroutine(DelayedVisualization());
     }
 
@@ -107,7 +106,7 @@ public class Calibration : MonoBehaviour
             spawnedEntities.Add(enemySpawn);
         }
 
-        //Debug.Log("✅ Preset visualized with terrain height adjustment.");
+        Debug.Log("Preset visualized.");
     }
 
     private Vector3 GetHeightAdjustedPosition(Vector3 position, float yOffset)
@@ -138,7 +137,7 @@ public class Calibration : MonoBehaviour
         {
             Vector3 worldPoint = ray.GetPoint(distance);
 
-            // ✅ Sample the terrain height directly
+            // Sample the terrain height directly
             float terrainHeight = Terrain.activeTerrain.SampleHeight(worldPoint);
             Vector3 adjustedPosition = new Vector3(worldPoint.x, terrainHeight, worldPoint.z);
 
@@ -172,7 +171,7 @@ public class Calibration : MonoBehaviour
         SaveTerrainHeightmap();
 
         PlayerPrefs.Save();
-        //Debug.Log("✅ Calibration settings saved.");
+        Debug.Log("Calibration settings saved.");
         GoToMainMenu();
     }
 

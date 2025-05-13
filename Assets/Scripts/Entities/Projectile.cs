@@ -35,7 +35,7 @@ public class Projectile : MonoBehaviour
         {
             transform.position += moveDirection * speed * Time.deltaTime;
 
-            // 🔄 Rotate to face movement direction
+            // Rotate to face movement direction
             if (moveDirection != Vector3.zero)
                 transform.rotation = Quaternion.LookRotation(moveDirection);
 
@@ -51,7 +51,7 @@ public class Projectile : MonoBehaviour
         Vector3 direction = (target.position - transform.position).normalized;
         transform.position += direction * speed * Time.deltaTime;
 
-        // 🔄 Rotate to face the target direction
+        // Rotate to face the target direction
         if (direction != Vector3.zero)
         {
             Quaternion lookRotation = Quaternion.LookRotation(direction);

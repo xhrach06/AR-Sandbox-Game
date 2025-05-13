@@ -24,7 +24,7 @@ public class GameplayCameraManager : MonoBehaviour
         }
         else
         {
-            //Debug.LogWarning("KinectDepthTerrain not assigned to GameplayCameraManager.");
+            Debug.LogWarning("KinectDepthTerrain not assigned to GameplayCameraManager.");
         }
     }
 

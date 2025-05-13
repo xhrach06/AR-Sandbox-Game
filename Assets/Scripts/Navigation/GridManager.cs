@@ -24,9 +24,7 @@ public class GridManager : MonoBehaviour
         GenerateGrid();
     }
 
-    /// <summary>
     /// Marks grid cells as occupied (e.g., by towers) to make them unwalkable.
-    /// </summary>
     public void SetObstaclePositions(List<Vector3> worldPositions)
     {
         occupiedNodes.Clear();
@@ -42,9 +40,7 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    /// <summary>
     /// Generates the grid and calculates walkability based on terrain and tower positions.
-    /// </summary>
     public void GenerateGrid()
     {
         grid = new Node[gridSize.x, gridSize.y];
@@ -66,9 +62,7 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    /// <summary>
     /// Returns the node corresponding to a world position.
-    /// </summary>
     public Node GetNodeFromWorldPosition(Vector3 worldPosition)
     {
         int x = Mathf.FloorToInt(worldPosition.x / nodeSize);
@@ -80,9 +74,7 @@ public class GridManager : MonoBehaviour
         return grid[x, y];
     }
 
-    /// <summary>
     /// Visualizes the grid in the scene view using Gizmos.
-    /// </summary>
     void OnDrawGizmos()
     {
         if (grid == null) return;

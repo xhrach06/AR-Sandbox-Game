@@ -20,7 +20,7 @@ public class Castle : MonoBehaviour
 
     private float lastAttackTime;
     private readonly List<Transform> enemiesInRange = new();
-
+    // Disables the castle in CalibrationScene
     private void Awake()
     {
         if (SceneManager.GetActiveScene().name == "CalibrationScene")
@@ -29,7 +29,7 @@ public class Castle : MonoBehaviour
             return;
         }
     }
-
+    // Initializes health and health bar UI
     private void Start()
     {
         health = GetComponent<Health>();
@@ -48,7 +48,7 @@ public class Castle : MonoBehaviour
 
         health.SetLinkedHealthBar(bar);
     }
-
+    // Handles attack timing and targeting
     private void Update()
     {
         enemiesInRange.RemoveAll(enemy => enemy == null);
@@ -63,7 +63,7 @@ public class Castle : MonoBehaviour
             }
         }
     }
-
+    // Fires a projectile at a given target
     private void Shoot(Transform target)
     {
         if (projectilePrefab == null || firePoint == null) return;
@@ -72,18 +72,20 @@ public class Castle : MonoBehaviour
         Projectile projScript = projectile.GetComponent<Projectile>();
         projScript?.SetTarget(target, attackDamage);
     }
-
+    // Applies damage to the castle
     public void TakeDamage(float damage)
     {
         health?.TakeDamage(damage);
     }
 
+    // Adds enemies to tracking list when they enter range
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Enemy"))
             enemiesInRange.Add(other.transform);
     }
 
+    // Removes enemies from tracking list when they leave range
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Enemy"))

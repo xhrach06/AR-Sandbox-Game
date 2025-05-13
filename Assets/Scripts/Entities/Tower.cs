@@ -18,7 +18,7 @@ public class Tower : MonoBehaviour
     private float lastAttackTime;
     private Health health;
     private readonly List<Transform> enemiesInRange = new();
-
+    // Disables the tower in the CalibrationScene
     private void Awake()
     {
         if (SceneManager.GetActiveScene().name == "CalibrationScene")
@@ -27,7 +27,7 @@ public class Tower : MonoBehaviour
             return;
         }
     }
-
+    // Initializes health and sets up health bar UI
     private void Start()
     {
         health = GetComponent<Health>();
@@ -46,7 +46,7 @@ public class Tower : MonoBehaviour
 
         health.SetLinkedHealthBar(bar);
     }
-
+    // Handles attack logic and cooldown timing
     private void Update()
     {
         enemiesInRange.RemoveAll(enemy => enemy == null);
@@ -59,7 +59,7 @@ public class Tower : MonoBehaviour
             lastAttackTime = Time.time;
         }
     }
-
+    // Instantiates and launches a projectile toward the target
     private void Shoot(Transform target)
     {
         if (projectilePrefab == null || firePoint == null) return;
@@ -89,24 +89,28 @@ public class Tower : MonoBehaviour
         }
     }
 
+    // Selects a random valid enemy from the list
     private Transform SelectTarget()
     {
         int index = Random.Range(0, enemiesInRange.Count);
         return enemiesInRange[index] != null ? enemiesInRange[index] : enemiesInRange[0];
     }
 
+    // Adds an enemy to the attack range list
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Enemy"))
             enemiesInRange.Add(other.transform);
     }
 
+    // Removes an enemy from the attack range list
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Enemy"))
             enemiesInRange.Remove(other.transform);
     }
 
+    // Applies damage to the tower
     public void TakeDamage(float damage)
     {
         health?.TakeDamage(damage);
