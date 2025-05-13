@@ -141,7 +141,7 @@ MonoBehaviour:
   attackRange: 30
   attackCooldown: 1
   damageToCastle: 10
-  moveSpeed: 3
+  moveSpeed: 5.5
   avoidRadius: 10
   offsetDistance: 2
   barrierPassChance: 50

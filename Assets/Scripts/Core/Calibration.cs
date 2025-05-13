@@ -31,6 +31,12 @@ public class Calibration : MonoBehaviour
     {
         KinectTerrainCamera = Camera.main;
 
+        float x = PlayerPrefs.GetFloat("CameraPositionX", KinectTerrainCamera.transform.position.x);
+        float y = PlayerPrefs.GetFloat("CameraPositionY", KinectTerrainCamera.transform.position.y);
+        float z = PlayerPrefs.GetFloat("CameraPositionZ", KinectTerrainCamera.transform.position.z);
+        KinectTerrainCamera.transform.position = new Vector3(x, y, z);
+
+
         presetManager = FindObjectOfType<PresetManager>();
         if (presetManager == null)
         {
@@ -125,24 +131,28 @@ public class Calibration : MonoBehaviour
     private void RegisterPosition(string type)
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit))
+
+        // Use a fixed Y plane at terrain height range instead of relying on terrain collider
+        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+        if (groundPlane.Raycast(ray, out float distance))
         {
-            Vector3 position = hit.point;
+            Vector3 worldPoint = ray.GetPoint(distance);
+
+            // ✅ Sample the terrain height directly
+            float terrainHeight = Terrain.activeTerrain.SampleHeight(worldPoint);
+            Vector3 adjustedPosition = new Vector3(worldPoint.x, terrainHeight, worldPoint.z);
 
             switch (type)
             {
-                case "castle": presetManager.AddCastle(position); break;
-                case "tower": presetManager.AddTower(position); break;
-                case "enemy": presetManager.AddEnemySpawn(position); break;
+                case "castle": presetManager.AddCastle(adjustedPosition); break;
+                case "tower": presetManager.AddTower(adjustedPosition); break;
+                case "enemy": presetManager.AddEnemySpawn(adjustedPosition); break;
             }
 
             VisualizePreset();
         }
-        else
-        {
-            //Debug.LogWarning("Click did not hit the terrain.");
-        }
     }
+
 
     public void SaveSettings()
     {

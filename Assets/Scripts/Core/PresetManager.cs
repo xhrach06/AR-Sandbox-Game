@@ -21,14 +21,33 @@ public class PresetManager : MonoBehaviour
 
     public bool calibrationRunning = false;
 
+    private readonly string[] presetNames = { "Preset1", "Preset2", "Preset3" };
+    private int currentPresetIndex;
+
     private string GetPresetFilePath() =>
         Path.Combine(Application.persistentDataPath, $"{selectedPreset}.json");
 
     private void Awake()
     {
-        selectedPreset = PlayerPrefs.GetString("SelectedPreset", "Preset1");
+        currentPresetIndex = PlayerPrefs.GetInt("CurrentPresetIndex", 0);
+        selectedPreset = presetNames[currentPresetIndex];
+
         calibration = FindObjectOfType<Calibration>();
         LoadPreset();
+    }
+
+    public void SelectNextPreset()
+    {
+        currentPresetIndex = (currentPresetIndex + 1) % presetNames.Length;
+        PlayerPrefs.SetInt("CurrentPresetIndex", currentPresetIndex);
+
+        selectedPreset = presetNames[currentPresetIndex];
+        LoadPreset();
+
+        if (calibrationRunning)
+            calibration.VisualizePreset();
+
+        Debug.Log($"🔁 Switched to {selectedPreset}");
     }
 
     public void SelectPreset(string presetName)

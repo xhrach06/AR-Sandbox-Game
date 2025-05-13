@@ -24,7 +24,7 @@ public class HudManager : MonoBehaviour
     public void SetTime(float time)
     {
         time = (int)time;
-        TimerContainer.text = $"{time:F1}s";
+        TimerContainer.text = $"{(int)time:F1}s";
     }
 
     public void SetKillCounter(int enemiesAlive)
@@ -37,9 +37,16 @@ public class HudManager : MonoBehaviour
         EnemyCounterContainer.text = $"Enemies Defeated: {enemiesDefeated}";
     }
 
-    public void SetGameOverText(string message)
+    public void SetGameOverText(bool survived)
     {
-        GameOverTextContainer.text = message;
+        if (survived)
+        {
+            GameOverTextContainer.text = "You survived! The castle held out for 2 minutes.";
+        }
+        else
+        {
+            GameOverTextContainer.text = $"Game Over! The castle was destroyed.\n You survived for {(int)timer}s";
+        }
         RestartButton.SetActive(true);
     }
 

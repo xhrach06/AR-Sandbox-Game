@@ -67,12 +67,12 @@ public class GameManager : MonoBehaviour
 
         if (timer <= 0)
         {
-            EndGame("You survived! The castle held out for 2 minutes.");
+            EndGame(true);
         }
 
         if (castleManager.GetCastleTransform() == null)
         {
-            EndGame("Game Over! The castle was destroyed.");
+            EndGame(false);
         }
     }
 
@@ -167,7 +167,7 @@ public class GameManager : MonoBehaviour
 
     // -------------------- Game Ending --------------------
 
-    public void EndGame(string message)
+    public void EndGame(bool survived)
     {
         gameRunning = false;
         //Debug.Log(message);
@@ -175,7 +175,7 @@ public class GameManager : MonoBehaviour
         HudManager hudManager = FindObjectOfType<HudManager>();
         if (hudManager != null)
         {
-            hudManager.SetGameOverText(message);
+            hudManager.SetGameOverText(survived);
         }
 
         enemyManager.StopSpawning();
@@ -184,8 +184,16 @@ public class GameManager : MonoBehaviour
 
     public void RestartGame()
     {
-        Time.timeScale = 1f; // In case the game was paused
+        Time.timeScale = 1f;
+        if (presetManager != null)
+        {
+            presetManager.SelectNextPreset();
+        }
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+    private void OnApplicationQuit()
+    {
+        PlayerPrefs.SetInt("CurrentPresetIndex", 0);
     }
 
 }

@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f1697f877a627147b7e84b14ee4e78d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 500
+  maxHealth: 1000
 --- !u!114 &3819553009783187183
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -170,7 +170,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 3369391029596936009, guid: 8bb6aaa077062524ab6bdacb58813b1d, type: 3}
   attackRange: 20
   attackDamage: 30
-  attackCooldown: 3
+  attackCooldown: 1
   firePoint: {fileID: 4570386850769100412}
   health: {fileID: 0}
   healthBarPrefab: {fileID: 5162456313399883726, guid: 57e8c2ae43a5c2e4cb7448e63b46d784, type: 3}

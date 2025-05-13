@@ -170,7 +170,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   projectilePrefab: {fileID: 3369391029596936009, guid: 8bb6aaa077062524ab6bdacb58813b1d, type: 3}
   attackRange: 25
-  attackCooldown: 0.8
+  attackCooldown: 0.65
   attackDamage: 33
   hitChance: 0.5
   firePoint: {fileID: 2674660292408354397}
