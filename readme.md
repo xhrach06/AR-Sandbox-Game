@@ -1,5 +1,12 @@
 # AR Sandbox Tower Defense
 
+## Gameplay Preview 🎮
+
+Curious what the game looks like in action?  
+Check out a short gameplay preview on YouTube:
+
+👉 [Watch the demo here](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+
 ## Project Structure
 
 The project is organized into the following folders:
@@ -56,9 +63,3 @@ The project is organized into the following folders:
 
 Run `AR Sandbox Tower Defense.exe` from the `app/` directory. Make sure all accompanying folders and files are in the same directory.
 
-## Gameplay Preview 🎮
-
-Curious what the game looks like in action?  
-Check out a short gameplay preview on YouTube:
-
-👉 [Watch the demo here](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
